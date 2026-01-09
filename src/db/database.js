@@ -3,7 +3,35 @@ import Dexie from 'dexie'
 // Create database
 export const db = new Dexie('EngLearnDB')
 
-// Define schema
+// Define schema - Version 4 with wordForms field
+db.version(4).stores({
+  books: '++id, name',
+  topics: '++id, bookId, name',
+  words: '++id, topicId, english, vietnamese, meaning, pronunciation, synonyms, antonyms, example, grammar, wordForms',
+  progress: '++id, wordId, correct, wrong, lastReview'
+}).upgrade(tx => {
+  return tx.table('words').toCollection().modify(word => {
+    word.wordForms = word.wordForms || ''
+  })
+})
+
+// Version 3
+db.version(3).stores({
+  books: '++id, name',
+  topics: '++id, bookId, name',
+  words: '++id, topicId, english, vietnamese, meaning, pronunciation, synonyms, antonyms, example, grammar',
+  progress: '++id, wordId, correct, wrong, lastReview'
+})
+
+// Version 2
+db.version(2).stores({
+  books: '++id, name',
+  topics: '++id, bookId, name',
+  words: '++id, topicId, english, vietnamese, meaning, pronunciation, synonyms, antonyms, example',
+  progress: '++id, wordId, correct, wrong, lastReview'
+})
+
+// Keep version 1 for backward compatibility
 db.version(1).stores({
   books: '++id, name',
   topics: '++id, bookId, name',

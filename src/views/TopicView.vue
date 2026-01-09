@@ -48,7 +48,15 @@
       
       <div class="word-list card">
         <div class="word-item" v-for="word in words" :key="word.id">
-          <span class="word-english">{{ word.english }}</span>
+          <div class="word-info-left">
+            <span class="word-english">{{ word.english }}</span>
+            <button 
+              class="btn-icon-audio" 
+              @click="playAudio(word.english)"
+            >
+              🔊
+            </button>
+          </div>
           <span class="word-vietnamese">{{ word.vietnamese }}</span>
         </div>
       </div>
@@ -60,12 +68,14 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getTopicById, getWordsByTopicId, getBookById } from '../db/database.js'
+import { useAudio } from '../composables/useAudio.js'
 
 const route = useRoute()
 const router = useRouter()
 const topic = ref(null)
 const words = ref([])
 const bookName = ref('')
+const { playAudio } = useAudio()
 
 onMounted(async () => {
   try {
@@ -190,6 +200,29 @@ function startQuiz(mode) {
 
 .word-vietnamese {
   color: var(--text-muted);
+}
+
+.word-info-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-icon-audio {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  opacity: 0.6;
+  padding: 0.25rem;
+  border-radius: 50%;
+  transition: all var(--transition-fast);
+}
+
+.btn-icon-audio:hover {
+  opacity: 1;
+  background-color: var(--mint-100);
+  transform: scale(1.1);
 }
 
 @media (max-width: 768px) {

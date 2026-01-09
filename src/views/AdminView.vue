@@ -165,29 +165,65 @@
       
       <!-- Add/Edit Word Modal -->
       <div class="modal" v-if="showAddWord || editingWord">
-        <div class="modal-content card">
+        <div class="modal-content card modal-large">
           <h3>{{ editingWord ? 'Sửa từ' : 'Thêm từ mới' }}</h3>
-          <select v-model="wordForm.topicId" class="input">
-            <option value="">-- Chọn chủ đề --</option>
-            <option v-for="topic in topics" :key="topic.id" :value="topic.id">
-              {{ topic.name }}
-            </option>
-          </select>
-          <input 
-            v-model="wordForm.english" 
-            class="input" 
-            placeholder="Từ tiếng Anh"
-          >
-          <input 
-            v-model="wordForm.vietnamese" 
-            class="input" 
-            placeholder="Nghĩa tiếng Việt"
-          >
-          <textarea 
-            v-model="wordForm.meaning" 
-            class="input textarea" 
-            placeholder="Định nghĩa tiếng Anh (tùy chọn)"
-          ></textarea>
+          <div class="modal-scroll">
+            <select v-model="wordForm.topicId" class="input">
+              <option value="">-- Chọn chủ đề --</option>
+              <option v-for="topic in topics" :key="topic.id" :value="topic.id">
+                {{ topic.name }}
+              </option>
+            </select>
+            <div class="form-row">
+              <input 
+                v-model="wordForm.english" 
+                class="input" 
+                placeholder="Từ tiếng Anh *"
+              >
+              <input 
+                v-model="wordForm.pronunciation" 
+                class="input" 
+                placeholder="Phiên âm (VD: /əˈɡriːmənt/)"
+              >
+            </div>
+            <input 
+              v-model="wordForm.vietnamese" 
+              class="input" 
+              placeholder="Nghĩa tiếng Việt *"
+            >
+            <textarea 
+              v-model="wordForm.meaning" 
+              class="input textarea" 
+              placeholder="Định nghĩa tiếng Anh"
+            ></textarea>
+            <textarea 
+              v-model="wordForm.example" 
+              class="input textarea" 
+              placeholder="Câu ví dụ"
+            ></textarea>
+            <textarea 
+              v-model="wordForm.grammar" 
+              class="input textarea" 
+              placeholder="Ngữ pháp (VD: collocations, prepositions...)"
+            ></textarea>
+            <input 
+              v-model="wordForm.wordForms" 
+              class="input" 
+              placeholder="Word Forms (VD: beauty (n), beautiful (adj))"
+            >
+            <div class="form-row">
+              <input 
+                v-model="wordForm.synonyms" 
+                class="input" 
+                placeholder="Từ đồng nghĩa (cách nhau bằng dấu phẩy)"
+              >
+              <input 
+                v-model="wordForm.antonyms" 
+                class="input" 
+                placeholder="Từ trái nghĩa (cách nhau bằng dấu phẩy)"
+              >
+            </div>
+          </div>
           <div class="modal-actions">
             <button class="btn btn-secondary" @click="cancelWordEdit">Hủy</button>
             <button class="btn btn-primary" @click="saveWord">Lưu</button>
@@ -261,7 +297,7 @@ const editingWord = ref(null)
 // Forms
 const bookForm = ref({ name: '', description: '', coverImage: '' })
 const topicForm = ref({ bookId: '', name: '' })
-const wordForm = ref({ topicId: '', english: '', vietnamese: '', meaning: '' })
+const wordForm = ref({ topicId: '', english: '', vietnamese: '', meaning: '', pronunciation: '', synonyms: '', antonyms: '', example: '', grammar: '', wordForms: '' })
 
 // Computed
 const filteredTopics = computed(() => {
@@ -370,7 +406,7 @@ function editWord(word) {
 function cancelWordEdit() {
   editingWord.value = null
   showAddWord.value = false
-  wordForm.value = { topicId: '', english: '', vietnamese: '', meaning: '' }
+  wordForm.value = { topicId: '', english: '', vietnamese: '', meaning: '', pronunciation: '', synonyms: '', antonyms: '', example: '', grammar: '', wordForms: '' }
 }
 
 async function saveWord() {
@@ -623,5 +659,41 @@ async function handleFileSelect(event) {
     align-items: flex-start;
     gap: 1rem;
   }
+  
+  .form-row {
+    flex-direction: column;
+  }
+}
+
+/* Extended modal for word form */
+.modal-large {
+  max-width: 600px;
+}
+
+.modal-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.modal-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.modal-scroll::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 4px;
+}
+
+.form-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.form-row .input {
+  flex: 1;
 }
 </style>
