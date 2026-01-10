@@ -259,6 +259,21 @@
             Chọn file JSON
           </button>
         </div>
+
+        <div class="section-block">
+          <h3>☁️ Sync to Cloud</h3>
+          <p class="text-muted">Đồng bộ dữ liệu hiện tại lên Server (PostgreSQL)</p>
+          <div class="sync-status" v-if="syncStatus">
+            <span :class="syncStatus.type">{{ syncStatus.message }}</span>
+          </div>
+          <button 
+            class="btn btn-primary mt-4" 
+            @click="handleSyncToCloud" 
+            :disabled="isSyncing"
+          >
+            {{ isSyncing ? 'Đang đồng bộ...' : 'Bắt đầu đồng bộ' }}
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -272,8 +287,9 @@ import {
   getWordsByTopicId, addWord, updateWord, deleteWord,
   exportDatabase, importDatabase, db
 } from '../db/database.js'
+import { api } from '../services/api.js'
 
-const activeTab = ref('books')
+const activeTab = ref('import')
 
 // Data
 const books = ref([])
@@ -463,6 +479,90 @@ async function handleFileSelect(event) {
   
   event.target.value = ''
 }
+
+// Cloud Sync
+const isSyncing = ref(false)
+const syncStatus = ref(null)
+
+async function handleSyncToCloud() {
+  if (!confirm('Bạn có chắc muốn đồng bộ dữ liệu lên Server? Dữ liệu trên Server sẽ được thêm mới.')) return
+
+  isSyncing.value = true
+  syncStatus.value = { type: 'info', message: 'Đang kiểm tra kết nối...' }
+
+  try {
+    const health = await api.checkHealth()
+    if (!health) {
+      throw new Error('Không thể kết nối đến Backend Server (http://localhost:8080)')
+    }
+
+    // 1. Sync Books
+    syncStatus.value = { type: 'info', message: 'Đang đồng bộ Sách...' }
+    const booksData = await getAllBooks()
+    const bookMap = new Map() // Old ID -> New ID
+
+    for (const book of booksData) {
+      // Create new book object without ID
+      const { id, ...bookPayload } = book
+      const newBook = await api.createBook(bookPayload)
+      bookMap.set(id, newBook.id)
+    }
+
+    // 2. Sync Topics
+    syncStatus.value = { type: 'info', message: 'Đang đồng bộ Chủ đề...' }
+    const topicMap = new Map() // Old ID -> New ID
+    
+    // We already loaded all topics in loadData(), re-use logic or fetch again
+    const allTopics = []
+    for (const book of booksData) {
+      const bookTopics = await getTopicsByBookId(book.id)
+      for (const topic of bookTopics) {
+        // Map old bookId to new bookId from Server
+        const newBookId = bookMap.get(topic.bookId)
+        if (newBookId) {
+          const { id, ...topicPayload } = topic
+          topicPayload.book = { id: newBookId } // Set relationship
+          // Remove primitive bookId as backend expects object or we modify controller to accept ID, but our entity uses Book object. 
+          // Actually our controller expects Topic object which has Book object.
+          // Let's adjust payload structure to match Java Entity: { name: "...", book: { id: 1 } }
+          
+          const newTopic = await api.createTopic(topicPayload)
+          topicMap.set(id, newTopic.id)
+        }
+      }
+    }
+
+    // 3. Sync Words
+    syncStatus.value = { type: 'info', message: 'Đang đồng bộ Từ vựng...' }
+    let wordCount = 0
+    
+    // Iterate all books -> topics -> words
+    for (const book of booksData) {
+      const bookTopics = await getTopicsByBookId(book.id)
+      for (const topic of bookTopics) {
+        const topicWords = await getWordsByTopicId(topic.id)
+        const newTopicId = topicMap.get(topic.id)
+        
+        if (newTopicId) {
+          for (const word of topicWords) {
+             const { id, topicId, ...wordPayload } = word
+             wordPayload.topic = { id: newTopicId }
+             await api.createWord(wordPayload)
+             wordCount++
+          }
+        }
+      }
+    }
+
+    syncStatus.value = { type: 'success', message: `Đồng bộ thành công! (${booksData.length} sách, ${topicMap.size} chủ đề, ${wordCount} từ)` }
+
+  } catch (error) {
+    console.error(error)
+    syncStatus.value = { type: 'error', message: 'Lỗi: ' + error.message }
+  } finally {
+    isSyncing.value = false
+  }
+}
 </script>
 
 <style scoped>
@@ -637,11 +737,26 @@ async function handleFileSelect(event) {
 
 .section-block {
   padding: 1.5rem;
+  padding: 1.5rem;
   background-color: var(--neutral-50);
   border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
 }
 
-.section-block h3 {
+.sync-status {
+  padding: 0.75rem;
+  margin: 1rem 0;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.sync-status span.success { color: #10b981; }
+.sync-status span.error { color: #ef4444; }
+.sync-status span.info { color: #3b82f6; }
+
+@media (max-width: 768px) {
   margin-bottom: 0.5rem;
 }
 

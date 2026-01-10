@@ -1,113 +1,89 @@
 import Dexie from 'dexie'
+import { api } from '../services/api.js'
 
-// Create database
+// Create database (Only for user progress now)
 export const db = new Dexie('EngLearnDB')
 
-// Define schema - Version 4 with wordForms field
+// Define schema
 db.version(4).stores({
-  books: '++id, name',
-  topics: '++id, bookId, name',
-  words: '++id, topicId, english, vietnamese, meaning, pronunciation, synonyms, antonyms, example, grammar, wordForms',
-  progress: '++id, wordId, correct, wrong, lastReview'
-}).upgrade(tx => {
-  return tx.table('words').toCollection().modify(word => {
-    word.wordForms = word.wordForms || ''
-  })
-})
-
-// Version 3
-db.version(3).stores({
-  books: '++id, name',
-  topics: '++id, bookId, name',
-  words: '++id, topicId, english, vietnamese, meaning, pronunciation, synonyms, antonyms, example, grammar',
+  // Content tables are deprecated in favor of Backend API
+  books: '++id, name', // Unused
+  topics: '++id, bookId, name', // Unused
+  words: '++id, topicId, english, vietnamese, meaning, pronunciation, synonyms, antonyms, example, grammar, wordForms', // Unused
   progress: '++id, wordId, correct, wrong, lastReview'
 })
 
-// Version 2
-db.version(2).stores({
-  books: '++id, name',
-  topics: '++id, bookId, name',
-  words: '++id, topicId, english, vietnamese, meaning, pronunciation, synonyms, antonyms, example',
-  progress: '++id, wordId, correct, wrong, lastReview'
-})
+// Helper functions - Redirect to API
 
-// Keep version 1 for backward compatibility
-db.version(1).stores({
-  books: '++id, name',
-  topics: '++id, bookId, name',
-  words: '++id, topicId, english, vietnamese, meaning',
-  progress: '++id, wordId, correct, wrong, lastReview'
-})
-
-// Helper functions
 export async function getAllBooks() {
-  return await db.books.toArray()
+  return await api.getBooks()
 }
 
 export async function getBookById(id) {
-  return await db.books.get(Number(id))
+  return await api.getBookById(id)
 }
 
 export async function getTopicsByBookId(bookId) {
-  return await db.topics.where('bookId').equals(Number(bookId)).toArray()
+  return await api.getTopicsByBookId(bookId)
 }
 
 export async function getTopicById(id) {
-  return await db.topics.get(Number(id))
+  return await api.getTopicById(id)
 }
 
 export async function getWordsByTopicId(topicId) {
-  return await db.words.where('topicId').equals(Number(topicId)).toArray()
+  return await api.getWordsByTopicId(topicId)
 }
 
 export async function addBook(book) {
-  return await db.books.add(book)
+  return await api.createBook(book)
 }
 
 export async function updateBook(id, book) {
-  return await db.books.update(Number(id), book)
+  return await api.updateBook(id, book)
 }
 
 export async function deleteBook(id) {
-  // Delete all related topics and words first
-  const topics = await getTopicsByBookId(id)
-  for (const topic of topics) {
-    await db.words.where('topicId').equals(topic.id).delete()
-  }
-  await db.topics.where('bookId').equals(Number(id)).delete()
-  return await db.books.delete(Number(id))
+  return await api.deleteBook(id)
 }
 
 export async function addTopic(topic) {
-  return await db.topics.add(topic)
+  return await api.createTopic(topic)
 }
 
 export async function updateTopic(id, topic) {
-  return await db.topics.update(Number(id), topic)
+  return await api.updateTopic(id, topic)
 }
 
 export async function deleteTopic(id) {
-  await db.words.where('topicId').equals(Number(id)).delete()
-  return await db.topics.delete(Number(id))
+  return await api.deleteTopic(id)
 }
 
 export async function addWord(word) {
-  return await db.words.add(word)
+  return await api.createWord(word)
 }
 
 export async function updateWord(id, word) {
-  return await db.words.update(Number(id), word)
+  return await api.updateWord(id, word)
 }
 
 export async function deleteWord(id) {
-  return await db.words.delete(Number(id))
+  return await api.deleteWord(id)
 }
 
+// Bulk add words - Assuming backend doesn't support bulk add based on api.js. 
+// If AdminView uses this for import, we should iterate. 
+// AdminView import calls importDatabase which calls bulkAdd.
 export async function bulkAddWords(words) {
-  return await db.words.bulkAdd(words)
+  // Not supported via API yet in a single call, or iterate.
+  // For now, let's just loop sequentially or assume this is for local manual seeding (deprecated).
+  // If we really need bulk import, we should add API endpoint.
+  // But for now, let's map it to individual creates
+  const promises = words.map(w => api.createWord(w))
+  return Promise.all(promises)
 }
 
-// Progress functions
+// Progress functions - Keep using Local Dexie
 export async function getProgress(wordId) {
   return await db.progress.where('wordId').equals(Number(wordId)).first()
 }
@@ -130,28 +106,46 @@ export async function updateProgress(wordId, correct) {
   }
 }
 
-// Export/Import functions
+// Export/Import functions - Updated to use API for fetching
 export async function exportDatabase() {
-  const books = await db.books.toArray()
-  const topics = await db.topics.toArray()
-  const words = await db.words.toArray()
-  return { books, topics, words }
+  const books = await api.getBooks()
+  // Fetch all recursively
+  const booksFull = []
+  const topicsFull = []
+  const wordsFull = [] // This might be too heavy? AdminView limits scope?
+
+  // Current exportDatabase fetched EVERYTHING.
+  // With API, we might want to do this carefully.
+  // For now, let's replicate behavior: fetch all.
+  for (const b of books) {
+    booksFull.push(b)
+    const topics = await api.getTopicsByBookId(b.id)
+    topicsFull.push(...topics)
+    for (const t of topics) {
+      const words = await api.getWordsByTopicId(t.id)
+      wordsFull.push(...words)
+    }
+  }
+
+  return { books: booksFull, topics: topicsFull, words: wordsFull }
 }
 
 export async function importDatabase(data) {
-  await db.transaction('rw', [db.books, db.topics, db.words], async () => {
-    await db.books.clear()
-    await db.topics.clear()
-    await db.words.clear()
-    
-    if (data.books) await db.books.bulkAdd(data.books)
-    if (data.topics) await db.topics.bulkAdd(data.topics)
-    if (data.words) await db.words.bulkAdd(data.words)
-  })
+  // This is tricky. Do we wipe Backend? 
+  // AdminView says "Import will overwrite existing data".
+  // Existing local logic was db.books.clear().
+  // Does Backend have clear all? No.
+  // So implementing 'importDatabase' properly on backend requires a 'reset' endpoint.
+  // Or we delete one by one (slow).
+  // For now, let's ALERT that import behavior might be different or unimplemented.
+  console.warn("Import not fully supported with backend switch yet.")
+  // We can attempt to create but IDs will conflict if we don't clear.
+  // For safety, let's throw or check.
+  alert("Tính năng Import hiện đang bị khóa khi chuyển sang Backend.")
 }
 
-// Check if database is empty
+// Check if database is empty - Now check Backend
 export async function isDatabaseEmpty() {
-  const count = await db.books.count()
-  return count === 0
+  const books = await api.getBooks()
+  return books.length === 0
 }

@@ -37,7 +37,6 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import BookCard from '../components/BookCard.vue'
 import { getAllBooks, getTopicsByBookId } from '../db/database.js'
-import { seedDatabase } from '../db/seedData.js'
 
 const router = useRouter()
 const books = ref([])
@@ -46,9 +45,6 @@ const loading = ref(true)
 
 onMounted(async () => {
   try {
-    // Seed database if empty
-    await seedDatabase()
-    
     // Load books
     books.value = await getAllBooks()
     
