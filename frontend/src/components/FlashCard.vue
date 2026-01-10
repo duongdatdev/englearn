@@ -66,6 +66,43 @@
               <span class="section-content small">{{ word.antonyms }}</span>
             </div>
           </div>
+
+          <!-- AI Section -->
+          <div class="ai-actions" @click.stop>
+            <button class="ai-btn" @click="getAIExplain" :disabled="aiLoading.explain">
+              {{ aiLoading.explain ? '⏳' : '🤖' }} Giải thích AI
+            </button>
+            <button class="ai-btn" @click="getAISentences" :disabled="aiLoading.sentences">
+              {{ aiLoading.sentences ? '⏳' : '✍️' }} Tạo câu mới
+            </button>
+            <button class="ai-btn" @click="getAISynonyms" :disabled="aiLoading.synonyms">
+              {{ aiLoading.synonyms ? '⏳' : '📚' }} Từ liên quan
+            </button>
+          </div>
+
+          <!-- AI Results -->
+          <div class="ai-result" v-if="aiExplain" @click.stop>
+            <div class="ai-result-header">🤖 AI Giải thích</div>
+            <p>{{ aiExplain.wordExplanation }}</p>
+            <p v-if="aiExplain.grammarNote"><strong>Ngữ pháp:</strong> {{ aiExplain.grammarNote }}</p>
+          </div>
+
+          <div class="ai-result" v-if="aiSentences" @click.stop>
+            <div class="ai-result-header">✍️ Câu ví dụ mới</div>
+            <ul>
+              <li v-for="(s, i) in aiSentences.sentences" :key="i">{{ s }}</li>
+            </ul>
+          </div>
+
+          <div class="ai-result" v-if="aiSynonyms" @click.stop>
+            <div class="ai-result-header">📚 Từ liên quan</div>
+            <div class="ai-chips">
+              <span class="ai-chip green" v-for="syn in aiSynonyms.synonyms" :key="syn">{{ syn }}</span>
+            </div>
+            <div class="ai-chips" v-if="aiSynonyms.antonyms?.length">
+              <span class="ai-chip red" v-for="ant in aiSynonyms.antonyms" :key="ant">{{ ant }}</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -73,8 +110,9 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useAudio } from '../composables/useAudio.js'
+import { api } from '../services/api.js'
 
 const props = defineProps({
   word: {
@@ -88,6 +126,10 @@ const props = defineProps({
 })
 
 const isFlipped = ref(false)
+const aiLoading = ref({ explain: false, sentences: false, synonyms: false })
+const aiExplain = ref(null)
+const aiSentences = ref(null)
+const aiSynonyms = ref(null)
 
 const frontLabel = computed(() => {
   switch (props.showSide) {
@@ -113,6 +155,9 @@ function flip() {
 
 function reset() {
   isFlipped.value = false
+  aiExplain.value = null
+  aiSentences.value = null
+  aiSynonyms.value = null
 }
 
 const { isPlaying, playAudio } = useAudio()
@@ -120,6 +165,39 @@ const { isPlaying, playAudio } = useAudio()
 function playWordAudio() {
   playAudio(props.word.english)
 }
+
+async function getAIExplain() {
+  aiLoading.value.explain = true
+  try {
+    const result = await api.explainWord(props.word.english, 'TOEIC vocabulary')
+    if (result.success) aiExplain.value = result
+  } catch (e) { console.error(e) }
+  aiLoading.value.explain = false
+}
+
+async function getAISentences() {
+  aiLoading.value.sentences = true
+  try {
+    const result = await api.generateSentences(props.word.english, 'medium')
+    if (result.success) aiSentences.value = result
+  } catch (e) { console.error(e) }
+  aiLoading.value.sentences = false
+}
+
+async function getAISynonyms() {
+  aiLoading.value.synonyms = true
+  try {
+    const result = await api.getSynonymsAntonyms(props.word.english)
+    if (result.success) aiSynonyms.value = result
+  } catch (e) { console.error(e) }
+  aiLoading.value.synonyms = false
+}
+
+watch(() => props.word, () => {
+  aiExplain.value = null
+  aiSentences.value = null
+  aiSynonyms.value = null
+})
 
 defineExpose({ reset })
 </script>
@@ -347,5 +425,89 @@ defineExpose({ reset })
 
 .flashcard-section.half {
   flex: 1;
+}
+
+/* AI Features */
+.ai-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  flex-wrap: wrap;
+}
+
+.ai-btn {
+  padding: 0.4rem 0.75rem;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: var(--radius-lg);
+  color: white;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ai-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.02);
+}
+
+.ai-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.ai-result {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-md);
+}
+
+.ai-result-header {
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  opacity: 0.9;
+}
+
+.ai-result p {
+  font-size: 0.8rem;
+  margin: 0.25rem 0;
+  line-height: 1.4;
+}
+
+.ai-result ul {
+  margin: 0;
+  padding-left: 1rem;
+}
+
+.ai-result li {
+  font-size: 0.75rem;
+  margin-bottom: 0.25rem;
+  line-height: 1.4;
+}
+
+.ai-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+}
+
+.ai-chip {
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.ai-chip.green {
+  background: rgba(16, 185, 129, 0.3);
+}
+
+.ai-chip.red {
+  background: rgba(239, 68, 68, 0.3);
 }
 </style>

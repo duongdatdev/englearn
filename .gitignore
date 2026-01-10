@@ -21,3 +21,5 @@ npm-debug.log*
 .env.local
 .env.*.local
 .cache/
+# Secrets
+backend/src/main/resources/application.properties

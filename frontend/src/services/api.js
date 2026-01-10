@@ -102,5 +102,60 @@ export const api = {
     } catch (e) {
       return false
     }
+  },
+
+  // AI Features
+  async getSynonymsAntonyms(word) {
+    const response = await fetch(`${API_URL}/ai/synonyms-antonyms`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ word })
+    })
+    return response.json()
+  },
+
+  async checkSpelling(input, expected, context = null) {
+    const response = await fetch(`${API_URL}/ai/spell-check`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ input, expected, context })
+    })
+    return response.json()
+  },
+
+  async explainWord(word, context = null) {
+    const response = await fetch(`${API_URL}/ai/explain`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ word, context })
+    })
+    return response.json()
+  },
+
+  async generateSentences(word, level = 'medium') {
+    const response = await fetch(`${API_URL}/ai/sentences`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ word, level })
+    })
+    return response.json()
+  },
+
+  async getQuizHint(question, wrongAnswer, correctAnswer) {
+    const response = await fetch(`${API_URL}/ai/quiz-hint`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question, wrongAnswer, correctAnswer })
+    })
+    return response.json()
+  },
+
+  async smartSearch(input) {
+    const response = await fetch(`${API_URL}/ai/smart-search`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ input })
+    })
+    return response.json()
   }
 }
