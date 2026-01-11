@@ -2,59 +2,42 @@
   <div class="flashcard-view animate-fadeIn">
     <div class="flashcard-header">
       <button class="btn btn-ghost" @click="goBack">
-        ← Quay lại
+        <FeatherIcon type="arrow-left" :size="18" /> Quay lại
       </button>
       <div class="flashcard-progress">
         {{ currentIndex + 1 }} / {{ words.length }}
       </div>
     </div>
-    
+
     <div class="flashcard-area" v-if="words.length > 0">
-      <FlashCard 
-        ref="flashcardRef"
-        :word="currentWord" 
-        :show-side="showSide"
-      />
+      <FlashCard ref="flashcardRef" :word="currentWord" :show-side="showSide" />
     </div>
-    
+
     <div class="flashcard-controls">
-      <button 
-        class="btn btn-secondary btn-icon" 
-        @click="prevCard"
-        :disabled="currentIndex === 0"
-      >
-        ←
+      <button class="btn btn-secondary btn-icon" @click="prevCard" :disabled="currentIndex === 0">
+        <FeatherIcon type="chevron-left" :size="20" />
       </button>
-      
+
       <div class="control-center">
         <button class="btn btn-ghost" @click="shuffleCards">
-          🔀 Xáo trộn
+          <FeatherIcon type="shuffle" :size="16" /> Xáo trộn
         </button>
-        
+
         <select v-model="showSide" class="side-select">
           <option value="english">Hiện tiếng Anh</option>
           <option value="vietnamese">Hiện tiếng Việt</option>
           <option value="meaning">Hiện định nghĩa</option>
         </select>
       </div>
-      
-      <button 
-        class="btn btn-secondary btn-icon" 
-        @click="nextCard"
-        :disabled="currentIndex === words.length - 1"
-      >
-        →
+
+      <button class="btn btn-secondary btn-icon" @click="nextCard" :disabled="currentIndex === words.length - 1">
+        <FeatherIcon type="chevron-right" :size="20" />
       </button>
     </div>
-    
+
     <div class="progress-dots">
-      <span 
-        v-for="(_, index) in words" 
-        :key="index"
-        class="dot"
-        :class="{ active: index === currentIndex }"
-        @click="goToCard(index)"
-      ></span>
+      <span v-for="(_, index) in words" :key="index" class="dot" :class="{ active: index === currentIndex }"
+        @click="goToCard(index)"></span>
     </div>
   </div>
 </template>
@@ -63,6 +46,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import FlashCard from '../components/FlashCard.vue'
+import FeatherIcon from '../components/FeatherIcon.vue'
 import { getWordsByTopicId } from '../db/database.js'
 
 const route = useRoute()
@@ -130,6 +114,12 @@ function goBack() {
   margin-bottom: 2rem;
 }
 
+.flashcard-header .btn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
 .flashcard-progress {
   font-size: 1rem;
   font-weight: 500;
@@ -152,6 +142,18 @@ function goBack() {
   display: flex;
   align-items: center;
   gap: 1rem;
+}
+
+.control-center .btn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .side-select {
@@ -200,7 +202,7 @@ function goBack() {
     flex-direction: column;
     gap: 0.5rem;
   }
-  
+
   .flashcard-controls {
     flex-wrap: wrap;
     justify-content: center;

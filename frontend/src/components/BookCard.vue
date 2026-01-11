@@ -1,6 +1,8 @@
 <template>
   <div class="book-card card card-clickable" @click="$emit('click')">
-    <div class="book-icon">{{ book.coverImage || '📚' }}</div>
+    <div class="book-icon">
+      <FeatherIcon type="layers" :size="40" />
+    </div>
     <div class="book-info">
       <h3 class="book-name">{{ book.name }}</h3>
       <p class="book-description" v-if="book.description">{{ book.description }}</p>
@@ -12,6 +14,8 @@
 </template>
 
 <script setup>
+import FeatherIcon from './FeatherIcon.vue'
+
 defineProps({
   book: {
     type: Object,
@@ -34,8 +38,15 @@ defineEmits(['click'])
 }
 
 .book-icon {
-  font-size: 3rem;
   flex-shrink: 0;
+  color: var(--mint-500);
+  padding: 0.75rem;
+  background: var(--mint-100);
+  border-radius: var(--radius-lg);
+}
+
+[data-theme="dark"] .book-icon {
+  background: rgba(21, 183, 158, 0.2);
 }
 
 .book-info {

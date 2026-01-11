@@ -1,32 +1,29 @@
 <template>
   <div class="ai-assistant">
     <!-- Floating Button -->
-    <button 
-      class="ai-fab" 
-      @click="togglePanel"
-      :class="{ active: isOpen }"
-    >
-      <span class="ai-icon">🤖</span>
+    <button class="ai-fab" @click="togglePanel" :class="{ active: isOpen }">
+      <FeatherIcon type="cpu" :size="24" class="ai-icon" />
     </button>
 
     <!-- AI Panel -->
     <Transition name="slide">
       <div v-if="isOpen" class="ai-panel card">
         <div class="ai-header">
-          <h3>🤖 AI Assistant</h3>
-          <button class="btn-close" @click="isOpen = false">✕</button>
+          <h3>
+            <FeatherIcon type="cpu" :size="18" /> AI Assistant
+          </h3>
+          <button class="btn-close" @click="isOpen = false">
+            <FeatherIcon type="x" :size="18" />
+          </button>
         </div>
 
         <div class="ai-content">
           <!-- Tabs -->
           <div class="ai-tabs">
-            <button 
-              v-for="tab in tabs" 
-              :key="tab.id"
-              :class="{ active: activeTab === tab.id }"
-              @click="activeTab = tab.id"
-            >
-              {{ tab.icon }} {{ tab.label }}
+            <button v-for="tab in tabs" :key="tab.id" :class="{ active: activeTab === tab.id }"
+              @click="activeTab = tab.id">
+              <FeatherIcon :type="tab.icon" :size="14" />
+              {{ tab.label }}
             </button>
           </div>
 
@@ -35,24 +32,24 @@
             <!-- Synonyms/Antonyms Tab -->
             <div v-if="activeTab === 'synonyms'" class="tab-panel">
               <div class="input-group">
-                <input 
-                  v-model="wordInput" 
-                  placeholder="Nhập từ tiếng Anh..."
-                  @keyup.enter="getSynonyms"
-                />
+                <input v-model="wordInput" placeholder="Nhập từ tiếng Anh..." @keyup.enter="getSynonyms" />
                 <button class="btn btn-primary" @click="getSynonyms" :disabled="loading">
                   {{ loading ? '...' : 'Tìm' }}
                 </button>
               </div>
               <div v-if="synonymsResult" class="result-box">
                 <div class="result-section">
-                  <strong>📗 Đồng nghĩa:</strong>
+                  <strong>
+                    <FeatherIcon type="check-circle" :size="14" /> Đồng nghĩa:
+                  </strong>
                   <div class="word-chips">
                     <span v-for="s in synonymsResult.synonyms" :key="s" class="chip chip-green">{{ s }}</span>
                   </div>
                 </div>
                 <div class="result-section">
-                  <strong>📕 Trái nghĩa:</strong>
+                  <strong>
+                    <FeatherIcon type="x-circle" :size="14" /> Trái nghĩa:
+                  </strong>
                   <div class="word-chips">
                     <span v-for="a in synonymsResult.antonyms" :key="a" class="chip chip-red">{{ a }}</span>
                   </div>
@@ -63,26 +60,28 @@
             <!-- Explain Tab -->
             <div v-if="activeTab === 'explain'" class="tab-panel">
               <div class="input-group">
-                <input 
-                  v-model="wordInput" 
-                  placeholder="Nhập từ cần giải thích..."
-                  @keyup.enter="explainWord"
-                />
+                <input v-model="wordInput" placeholder="Nhập từ cần giải thích..." @keyup.enter="explainWord" />
                 <button class="btn btn-primary" @click="explainWord" :disabled="loading">
                   {{ loading ? '...' : 'Giải thích' }}
                 </button>
               </div>
               <div v-if="explainResult" class="result-box">
                 <div class="result-section">
-                  <strong>📖 Nghĩa:</strong>
+                  <strong>
+                    <FeatherIcon type="book-open" :size="14" /> Nghĩa:
+                  </strong>
                   <p>{{ explainResult.wordExplanation }}</p>
                 </div>
                 <div class="result-section">
-                  <strong>📝 Ngữ pháp:</strong>
+                  <strong>
+                    <FeatherIcon type="file-text" :size="14" /> Ngữ pháp:
+                  </strong>
                   <p>{{ explainResult.grammarNote }}</p>
                 </div>
                 <div class="result-section">
-                  <strong>💡 Ví dụ:</strong>
+                  <strong>
+                    <FeatherIcon type="zap" :size="14" /> Ví dụ:
+                  </strong>
                   <ul>
                     <li v-for="ex in explainResult.usageExamples" :key="ex">{{ ex }}</li>
                   </ul>
@@ -93,11 +92,7 @@
             <!-- Sentences Tab -->
             <div v-if="activeTab === 'sentences'" class="tab-panel">
               <div class="input-group">
-                <input 
-                  v-model="wordInput" 
-                  placeholder="Nhập từ cần tạo câu..."
-                  @keyup.enter="generateSentences"
-                />
+                <input v-model="wordInput" placeholder="Nhập từ cần tạo câu..." @keyup.enter="generateSentences" />
                 <select v-model="level" class="level-select">
                   <option value="easy">Dễ</option>
                   <option value="medium">Trung bình</option>
@@ -119,18 +114,16 @@
             <!-- Search Tab -->
             <div v-if="activeTab === 'search'" class="tab-panel">
               <div class="input-group">
-                <input 
-                  v-model="searchInput" 
-                  placeholder="Tìm kiếm thông minh..."
-                  @keyup.enter="smartSearch"
-                />
+                <input v-model="searchInput" placeholder="Tìm kiếm thông minh..." @keyup.enter="smartSearch" />
                 <button class="btn btn-primary" @click="smartSearch" :disabled="loading">
                   {{ loading ? '...' : 'Tìm' }}
                 </button>
               </div>
               <div v-if="searchResult" class="result-box">
                 <div class="result-section">
-                  <strong>🔍 Kết quả:</strong>
+                  <strong>
+                    <FeatherIcon type="search" :size="14" /> Kết quả:
+                  </strong>
                   <div class="word-chips">
                     <span v-for="w in searchResult.synonyms" :key="w" class="chip chip-blue">{{ w }}</span>
                   </div>
@@ -155,6 +148,7 @@
 <script setup>
 import { ref } from 'vue'
 import { api } from '../services/api.js'
+import FeatherIcon from './FeatherIcon.vue'
 
 const isOpen = ref(false)
 const activeTab = ref('synonyms')
@@ -170,10 +164,10 @@ const sentencesResult = ref(null)
 const searchResult = ref(null)
 
 const tabs = [
-  { id: 'synonyms', icon: '📚', label: 'Đồng/Trái nghĩa' },
-  { id: 'explain', icon: '💡', label: 'Giải thích' },
-  { id: 'sentences', icon: '✍️', label: 'Tạo câu' },
-  { id: 'search', icon: '🔍', label: 'Tìm kiếm' }
+  { id: 'synonyms', icon: 'layers', label: 'Đồng/Trái nghĩa' },
+  { id: 'explain', icon: 'zap', label: 'Giải thích' },
+  { id: 'sentences', icon: 'edit-3', label: 'Tạo câu' },
+  { id: 'search', icon: 'search', label: 'Tìm kiếm' }
 ]
 
 function togglePanel() {
@@ -262,6 +256,7 @@ async function smartSearch() {
   display: flex;
   align-items: center;
   justify-content: center;
+  color: white;
 }
 
 .ai-fab:hover {
@@ -274,7 +269,7 @@ async function smartSearch() {
 }
 
 .ai-icon {
-  font-size: 1.75rem;
+  color: white;
 }
 
 .ai-panel {
@@ -300,15 +295,20 @@ async function smartSearch() {
   margin: 0;
   font-size: 1.1rem;
   color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .btn-close {
   background: none;
   border: none;
-  font-size: 1.25rem;
   cursor: pointer;
   color: var(--text-muted);
-  padding: 0.25rem 0.5rem;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-close:hover {
@@ -337,6 +337,9 @@ async function smartSearch() {
   font-size: 0.8rem;
   color: var(--text-muted);
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .ai-tabs button:hover {
@@ -394,7 +397,9 @@ async function smartSearch() {
 }
 
 .result-section strong {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
   margin-bottom: 0.5rem;
   color: var(--text-primary);
   font-size: 0.85rem;
@@ -496,11 +501,11 @@ async function smartSearch() {
     width: calc(100vw - 2rem);
     right: -0.5rem;
   }
-  
+
   .ai-tabs {
     gap: 0.25rem;
   }
-  
+
   .ai-tabs button {
     font-size: 0.7rem;
     padding: 0.4rem 0.5rem;

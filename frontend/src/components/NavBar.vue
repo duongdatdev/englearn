@@ -2,17 +2,17 @@
   <nav class="navbar">
     <div class="navbar-container">
       <router-link to="/" class="navbar-brand">
-        <span class="brand-icon">📖</span>
+        <FeatherIcon type="book-open" :size="24" class="brand-icon" />
         <span class="brand-text">EngLearn</span>
       </router-link>
-      
+
       <div class="navbar-menu">
         <router-link to="/" class="nav-link">
-          <span class="nav-icon">🏠</span>
+          <FeatherIcon type="home" :size="18" class="nav-icon" />
           <span>Trang chủ</span>
         </router-link>
         <router-link to="/admin" class="nav-link">
-          <span class="nav-icon">⚙️</span>
+          <FeatherIcon type="settings" :size="18" class="nav-icon" />
           <span>Quản lý</span>
         </router-link>
         <ThemeToggle />
@@ -23,6 +23,7 @@
 
 <script setup>
 import ThemeToggle from './ThemeToggle.vue'
+import FeatherIcon from './FeatherIcon.vue'
 </script>
 
 <style scoped>
@@ -56,7 +57,7 @@ import ThemeToggle from './ThemeToggle.vue'
 }
 
 .brand-icon {
-  font-size: 1.5rem;
+  color: var(--mint-500);
 }
 
 .navbar-menu {
@@ -93,14 +94,15 @@ import ThemeToggle from './ThemeToggle.vue'
 }
 
 .nav-icon {
-  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
 }
 
 @media (max-width: 768px) {
   .navbar-container {
     padding: 0 1rem;
   }
-  
+
   .nav-link span:not(.nav-icon) {
     display: none;
   }

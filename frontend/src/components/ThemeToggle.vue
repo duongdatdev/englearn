@@ -1,16 +1,14 @@
 <template>
-  <button 
-    class="theme-toggle" 
-    @click="toggleTheme"
-    :title="isDark ? 'Chuyển sang Light Mode' : 'Chuyển sang Dark Mode'"
-  >
-    <span v-if="isDark">☀️</span>
-    <span v-else>🌙</span>
+  <button class="theme-toggle" @click="toggleTheme"
+    :title="isDark ? 'Chuyển sang Light Mode' : 'Chuyển sang Dark Mode'">
+    <FeatherIcon v-if="isDark" type="sun" :size="20" />
+    <FeatherIcon v-else type="moon" :size="20" />
   </button>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import FeatherIcon from './FeatherIcon.vue'
 
 const isDark = ref(false)
 
@@ -36,3 +34,24 @@ function applyTheme() {
   document.documentElement.setAttribute('data-theme', isDark.value ? 'dark' : 'light')
 }
 </script>
+
+<style scoped>
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: all var(--transition-fast);
+}
+
+.theme-toggle:hover {
+  background: var(--mint-100);
+  color: var(--mint-500);
+}
+</style>

@@ -1,7 +1,7 @@
 <template>
   <div class="topic-card card card-clickable" @click="$emit('click')">
     <div class="topic-header">
-      <span class="topic-icon">📝</span>
+      <FeatherIcon type="file-text" :size="24" class="topic-icon" />
       <h4 class="topic-name">{{ topic.name }}</h4>
     </div>
     <div class="topic-meta">
@@ -17,6 +17,8 @@
 </template>
 
 <script setup>
+import FeatherIcon from './FeatherIcon.vue'
+
 defineProps({
   topic: {
     type: Object,
@@ -49,7 +51,7 @@ defineEmits(['click'])
 }
 
 .topic-icon {
-  font-size: 1.5rem;
+  color: var(--mint-500);
 }
 
 .topic-name {

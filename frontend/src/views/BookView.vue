@@ -5,37 +5,36 @@
       <span class="breadcrumb-separator">/</span>
       <span class="breadcrumb-current">{{ book?.name || 'Đang tải...' }}</span>
     </div>
-    
+
     <header class="book-header" v-if="book">
-      <span class="book-icon">{{ book.coverImage || '📚' }}</span>
+      <div class="book-icon-wrapper">
+        <FeatherIcon type="layers" :size="48" class="book-icon" />
+      </div>
       <div class="book-info">
         <h1 class="book-name">{{ book.name }}</h1>
         <p class="book-description" v-if="book.description">{{ book.description }}</p>
       </div>
     </header>
-    
+
     <section class="topics-section">
-      <h2 class="section-title">📝 Chủ Đề</h2>
-      
+      <h2 class="section-title">
+        <FeatherIcon type="folder" :size="24" /> Chủ Đề
+      </h2>
+
       <div v-if="loading" class="loading">
         <span class="animate-pulse">Đang tải...</span>
       </div>
-      
+
       <div v-else-if="topics.length === 0" class="empty-state">
         <p>Chưa có chủ đề nào trong sách này.</p>
         <router-link to="/admin" class="btn btn-primary">
           Thêm chủ đề
         </router-link>
       </div>
-      
+
       <div v-else class="grid grid-cols-3">
-        <TopicCard 
-          v-for="topic in topics" 
-          :key="topic.id"
-          :topic="topic"
-          :word-count="wordCounts[topic.id] || 0"
-          @click="goToTopic(topic.id)"
-        />
+        <TopicCard v-for="topic in topics" :key="topic.id" :topic="topic" :word-count="wordCounts[topic.id] || 0"
+          @click="goToTopic(topic.id)" />
       </div>
     </section>
   </div>
@@ -45,6 +44,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import TopicCard from '../components/TopicCard.vue'
+import FeatherIcon from '../components/FeatherIcon.vue'
 import { getBookById, getTopicsByBookId, getWordsByTopicId } from '../db/database.js'
 
 const route = useRoute()
@@ -57,10 +57,10 @@ const loading = ref(true)
 onMounted(async () => {
   try {
     const bookId = route.params.id
-    
+
     book.value = await getBookById(bookId)
     topics.value = await getTopicsByBookId(bookId)
-    
+
     // Get word counts for each topic
     for (const topic of topics.value) {
       const words = await getWordsByTopicId(topic.id)
@@ -115,8 +115,18 @@ function goToTopic(id) {
   border: 1px solid var(--border-color);
 }
 
+.book-icon-wrapper {
+  padding: 1rem;
+  background: var(--mint-100);
+  border-radius: var(--radius-lg);
+}
+
+[data-theme="dark"] .book-icon-wrapper {
+  background: rgba(21, 183, 158, 0.2);
+}
+
 .book-icon {
-  font-size: 4rem;
+  color: var(--mint-500);
 }
 
 .book-info {
@@ -137,6 +147,9 @@ function goToTopic(id) {
   font-size: 1.5rem;
   margin-bottom: 1.5rem;
   color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .loading {

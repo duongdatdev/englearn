@@ -2,49 +2,45 @@
   <div class="quiz-view animate-fadeIn">
     <div class="quiz-header">
       <button class="btn btn-ghost" @click="goBack">
-        ← Quay lại
+        <FeatherIcon type="arrow-left" :size="18" /> Quay lại
       </button>
       <div class="quiz-mode-badge badge badge-mint">
         {{ modeName }}
       </div>
     </div>
-    
-    <QuizCard 
-      v-if="words.length > 0 && !finished"
-      :word="currentWord"
-      :mode="mode"
-      :current="currentIndex"
-      :total="words.length"
-      @answer="handleAnswer"
-      @next="nextQuestion"
-    />
-    
+
+    <QuizCard v-if="words.length > 0 && !finished" :word="currentWord" :mode="mode" :current="currentIndex"
+      :total="words.length" @answer="handleAnswer" @next="nextQuestion" />
+
     <div v-if="finished" class="quiz-result card animate-fadeIn">
       <div class="result-header">
-        <span class="result-icon">{{ score >= words.length * 0.7 ? '🎉' : '📚' }}</span>
+        <span class="result-icon">
+          <FeatherIcon v-if="score >= words.length * 0.7" type="award" :size="48" />
+          <FeatherIcon v-else type="book" :size="48" />
+        </span>
         <h2 class="result-title">Kết quả</h2>
       </div>
-      
+
       <div class="result-score">
         <span class="score-value">{{ score }}</span>
         <span class="score-total">/ {{ words.length }}</span>
       </div>
-      
+
       <div class="result-percentage">
         {{ Math.round((score / words.length) * 100) }}% chính xác
       </div>
-      
+
       <div class="result-breakdown">
         <div class="breakdown-item correct">
-          <span class="breakdown-icon">✓</span>
+          <FeatherIcon type="check" :size="18" class="breakdown-icon" />
           <span>{{ score }} đúng</span>
         </div>
         <div class="breakdown-item wrong">
-          <span class="breakdown-icon">✗</span>
+          <FeatherIcon type="x" :size="18" class="breakdown-icon" />
           <span>{{ words.length - score }} sai</span>
         </div>
       </div>
-      
+
       <div class="wrong-words" v-if="wrongWords.length > 0">
         <h3 class="wrong-title">Từ cần ôn lại:</h3>
         <div class="wrong-list">
@@ -54,10 +50,10 @@
           </div>
         </div>
       </div>
-      
+
       <div class="result-actions">
         <button class="btn btn-secondary" @click="retry">
-          🔄 Làm lại
+          <FeatherIcon type="refresh-cw" :size="16" /> Làm lại
         </button>
         <router-link :to="`/topic/${topicId}`" class="btn btn-primary">
           Quay lại chủ đề
@@ -71,6 +67,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import QuizCard from '../components/QuizCard.vue'
+import FeatherIcon from '../components/FeatherIcon.vue'
 import { getWordsByTopicId, updateProgress } from '../db/database.js'
 
 const route = useRoute()
@@ -112,7 +109,7 @@ function handleAnswer(correct) {
   } else {
     wrongWords.value.push(currentWord.value)
   }
-  
+
   // Update progress in database
   updateProgress(currentWord.value.id, correct)
 }
@@ -152,6 +149,12 @@ function goBack() {
   margin-bottom: 2rem;
 }
 
+.quiz-header .btn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
 .quiz-result {
   text-align: center;
   padding: 2rem;
@@ -162,9 +165,10 @@ function goBack() {
 }
 
 .result-icon {
-  font-size: 3rem;
-  display: block;
+  display: flex;
+  justify-content: center;
   margin-bottom: 0.5rem;
+  color: var(--mint-500);
 }
 
 .result-title {
@@ -216,7 +220,8 @@ function goBack() {
 }
 
 .breakdown-icon {
-  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
 }
 
 .wrong-words {
@@ -263,6 +268,12 @@ function goBack() {
   display: flex;
   justify-content: center;
   gap: 1rem;
+}
+
+.result-actions .btn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 @media (max-width: 768px) {

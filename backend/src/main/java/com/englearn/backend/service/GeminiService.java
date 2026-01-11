@@ -11,6 +11,9 @@ import reactor.core.publisher.Mono;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.time.Duration;
+import reactor.util.retry.Retry;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 @Service
 public class GeminiService {
@@ -218,9 +221,24 @@ public class GeminiService {
                 .bodyValue(requestBody)
                 .retrieve()
                 .bodyToMono(String.class)
+                .retryWhen(Retry.backoff(3, Duration.ofSeconds(2))
+                    .filter(throwable -> throwable instanceof WebClientResponseException &&
+                        (((WebClientResponseException) throwable).getStatusCode().value() == 429 ||
+                         ((WebClientResponseException) throwable).getStatusCode().is5xxServerError())))
                 .block();
 
             return parseGeminiResponse(response, type);
+        } catch (WebClientResponseException e) {
+            if (e.getStatusCode().value() == 429) {
+                return AIResponse.builder()
+                    .success(false)
+                    .message("Hệ thống AI đang bận (429). Vui lòng thử lại sau vài giây.")
+                    .build();
+            }
+            return AIResponse.builder()
+                .success(false)
+                .message("Lỗi kết nối AI: " + e.getStatusText())
+                .build();
         } catch (Exception e) {
             return AIResponse.builder()
                 .success(false)

@@ -1,21 +1,13 @@
 <template>
   <div class="flashcard-container">
-    <div 
-      class="flashcard" 
-      :class="{ flipped: isFlipped }"
-      @click="flip"
-    >
+    <div class="flashcard" :class="{ flipped: isFlipped }" @click="flip">
       <div class="flashcard-front">
         <div class="flashcard-label">{{ frontLabel }}</div>
         <div class="flashcard-content-wrapper">
           <div class="flashcard-content">{{ frontContent }}</div>
-          <button 
-            v-if="showSide === 'english'" 
-            class="btn-audio" 
-            @click.stop="playWordAudio"
-            :class="{ 'playing': isPlaying }"
-          >
-            🔊
+          <button v-if="showSide === 'english'" class="btn-audio" @click.stop="playWordAudio"
+            :class="{ 'playing': isPlaying }">
+            <FeatherIcon type="volume-2" :size="20" />
           </button>
         </div>
         <div class="flashcard-pronunciation" v-if="showSide === 'english' && word.pronunciation">
@@ -30,39 +22,53 @@
             <span class="section-content english">{{ word.english }}</span>
             <span class="pronunciation" v-if="word.pronunciation">{{ word.pronunciation }}</span>
           </div>
-          
+
           <div class="flashcard-section">
-            <span class="section-label">🇻🇳 Tiếng Việt</span>
+            <span class="section-label">
+              <FeatherIcon type="globe" :size="12" /> Tiếng Việt
+            </span>
             <span class="section-content vietnamese">{{ word.vietnamese }}</span>
           </div>
-          
+
           <div class="flashcard-section" v-if="word.meaning">
-            <span class="section-label">📖 Định nghĩa</span>
+            <span class="section-label">
+              <FeatherIcon type="book" :size="12" /> Định nghĩa
+            </span>
             <span class="section-content meaning">{{ word.meaning }}</span>
           </div>
-          
+
           <div class="flashcard-section" v-if="word.example">
-            <span class="section-label">✍️ Ví dụ</span>
+            <span class="section-label">
+              <FeatherIcon type="edit-3" :size="12" /> Ví dụ
+            </span>
             <span class="section-content example">{{ word.example }}</span>
           </div>
 
           <div class="flashcard-section" v-if="word.grammar">
-            <span class="section-label">📐 Ngữ pháp</span>
+            <span class="section-label">
+              <FeatherIcon type="type" :size="12" /> Ngữ pháp
+            </span>
             <span class="section-content grammar">{{ word.grammar }}</span>
           </div>
 
           <div class="flashcard-section" v-if="word.wordForms">
-            <span class="section-label">🔠 Word Forms</span>
+            <span class="section-label">
+              <FeatherIcon type="list" :size="12" /> Word Forms
+            </span>
             <span class="section-content word-forms">{{ word.wordForms }}</span>
           </div>
-          
+
           <div class="flashcard-row" v-if="word.synonyms || word.antonyms">
             <div class="flashcard-section half" v-if="word.synonyms">
-              <span class="section-label">✓ Đồng nghĩa</span>
+              <span class="section-label">
+                <FeatherIcon type="check" :size="12" /> Đồng nghĩa
+              </span>
               <span class="section-content small">{{ word.synonyms }}</span>
             </div>
             <div class="flashcard-section half" v-if="word.antonyms">
-              <span class="section-label">✗ Trái nghĩa</span>
+              <span class="section-label">
+                <FeatherIcon type="x" :size="12" /> Trái nghĩa
+              </span>
               <span class="section-content small">{{ word.antonyms }}</span>
             </div>
           </div>
@@ -70,32 +76,44 @@
           <!-- AI Section -->
           <div class="ai-actions" @click.stop>
             <button class="ai-btn" @click="getAIExplain" :disabled="aiLoading.explain">
-              {{ aiLoading.explain ? '⏳' : '🤖' }} Giải thích AI
+              <FeatherIcon v-if="aiLoading.explain" type="loader" :size="14" class="spin" />
+              <FeatherIcon v-else type="cpu" :size="14" />
+              Giải thích AI
             </button>
             <button class="ai-btn" @click="getAISentences" :disabled="aiLoading.sentences">
-              {{ aiLoading.sentences ? '⏳' : '✍️' }} Tạo câu mới
+              <FeatherIcon v-if="aiLoading.sentences" type="loader" :size="14" class="spin" />
+              <FeatherIcon v-else type="edit-3" :size="14" />
+              Tạo câu mới
             </button>
             <button class="ai-btn" @click="getAISynonyms" :disabled="aiLoading.synonyms">
-              {{ aiLoading.synonyms ? '⏳' : '📚' }} Từ liên quan
+              <FeatherIcon v-if="aiLoading.synonyms" type="loader" :size="14" class="spin" />
+              <FeatherIcon v-else type="layers" :size="14" />
+              Từ liên quan
             </button>
           </div>
 
           <!-- AI Results -->
           <div class="ai-result" v-if="aiExplain" @click.stop>
-            <div class="ai-result-header">🤖 AI Giải thích</div>
+            <div class="ai-result-header">
+              <FeatherIcon type="cpu" :size="14" /> AI Giải thích
+            </div>
             <p>{{ aiExplain.wordExplanation }}</p>
             <p v-if="aiExplain.grammarNote"><strong>Ngữ pháp:</strong> {{ aiExplain.grammarNote }}</p>
           </div>
 
           <div class="ai-result" v-if="aiSentences" @click.stop>
-            <div class="ai-result-header">✍️ Câu ví dụ mới</div>
+            <div class="ai-result-header">
+              <FeatherIcon type="edit-3" :size="14" /> Câu ví dụ mới
+            </div>
             <ul>
               <li v-for="(s, i) in aiSentences.sentences" :key="i">{{ s }}</li>
             </ul>
           </div>
 
           <div class="ai-result" v-if="aiSynonyms" @click.stop>
-            <div class="ai-result-header">📚 Từ liên quan</div>
+            <div class="ai-result-header">
+              <FeatherIcon type="layers" :size="14" /> Từ liên quan
+            </div>
             <div class="ai-chips">
               <span class="ai-chip green" v-for="syn in aiSynonyms.synonyms" :key="syn">{{ syn }}</span>
             </div>
@@ -113,6 +131,7 @@
 import { ref, computed, watch } from 'vue'
 import { useAudio } from '../composables/useAudio.js'
 import { api } from '../services/api.js'
+import FeatherIcon from './FeatherIcon.vue'
 
 const props = defineProps({
   word: {
@@ -307,18 +326,22 @@ defineExpose({ reset })
 .btn-audio {
   background: none;
   border: none;
-  font-size: 1.5rem;
   cursor: pointer;
   opacity: 0.7;
   transition: all var(--transition-fast);
   padding: 0.5rem;
   border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
 }
 
 .btn-audio:hover {
   opacity: 1;
   background-color: rgba(0, 0, 0, 0.05);
   transform: scale(1.1);
+  color: var(--mint-600);
 }
 
 .btn-audio.playing {
@@ -327,9 +350,17 @@ defineExpose({ reset })
 }
 
 @keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 .flashcard-section {
@@ -350,6 +381,9 @@ defineExpose({ reset })
   opacity: 0.8;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 .section-content {
@@ -446,6 +480,9 @@ defineExpose({ reset })
   font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .ai-btn:hover:not(:disabled) {
@@ -470,6 +507,9 @@ defineExpose({ reset })
   font-weight: 600;
   margin-bottom: 0.5rem;
   opacity: 0.9;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .ai-result p {
@@ -509,5 +549,19 @@ defineExpose({ reset })
 
 .ai-chip.red {
   background: rgba(239, 68, 68, 0.3);
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

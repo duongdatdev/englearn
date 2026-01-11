@@ -4,29 +4,26 @@
       <h1 class="hero-title">Học Tiếng Anh Hiệu Quả</h1>
       <p class="hero-subtitle">Flash Cards, Quiz và nhiều hơn nữa</p>
     </section>
-    
+
     <section class="books-section">
-      <h2 class="section-title">📚 Sách Từ Vựng</h2>
-      
+      <h2 class="section-title">
+        <FeatherIcon type="book" :size="24" /> Sách Từ Vựng
+      </h2>
+
       <div v-if="loading" class="loading">
         <span class="animate-pulse">Đang tải...</span>
       </div>
-      
+
       <div v-else-if="books.length === 0" class="empty-state">
         <p>Chưa có sách nào.</p>
         <router-link to="/admin" class="btn btn-primary">
           Thêm sách mới
         </router-link>
       </div>
-      
+
       <div v-else class="grid grid-cols-2">
-        <BookCard 
-          v-for="book in books" 
-          :key="book.id"
-          :book="book"
-          :topic-count="topicCounts[book.id] || 0"
-          @click="goToBook(book.id)"
-        />
+        <BookCard v-for="book in books" :key="book.id" :book="book" :topic-count="topicCounts[book.id] || 0"
+          @click="goToBook(book.id)" />
       </div>
     </section>
   </div>
@@ -36,6 +33,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import BookCard from '../components/BookCard.vue'
+import FeatherIcon from '../components/FeatherIcon.vue'
 import { getAllBooks, getTopicsByBookId } from '../db/database.js'
 
 const router = useRouter()
@@ -47,7 +45,7 @@ onMounted(async () => {
   try {
     // Load books
     books.value = await getAllBooks()
-    
+
     // Get topic counts for each book
     for (const book of books.value) {
       const topics = await getTopicsByBookId(book.id)
@@ -91,6 +89,9 @@ function goToBook(id) {
   font-size: 1.5rem;
   margin-bottom: 1.5rem;
   color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .loading {
@@ -116,7 +117,7 @@ function goToBook(id) {
   .hero-title {
     font-size: 1.75rem;
   }
-  
+
   .hero-subtitle {
     font-size: 1rem;
   }

@@ -6,34 +6,29 @@
       </div>
       <span class="progress-text">{{ current + 1 }} / {{ total }}</span>
     </div>
-    
+
     <div class="quiz-question">
       <span class="question-label">{{ questionLabel }}</span>
       <span class="question-content">{{ questionContent }}</span>
     </div>
-    
+
     <div class="quiz-answer">
-      <input 
-        ref="inputRef"
-        type="text" 
-        class="input input-lg"
-        :class="{ 'input-correct': showResult && isCorrect, 'input-wrong': showResult && !isCorrect }"
-        v-model="answer"
-        :placeholder="placeholder"
-        @keyup.enter="checkAnswer"
-        :disabled="showResult"
-      >
+      <input ref="inputRef" type="text" class="input input-lg"
+        :class="{ 'input-correct': showResult && isCorrect, 'input-wrong': showResult && !isCorrect }" v-model="answer"
+        :placeholder="placeholder" @keyup.enter="checkAnswer" :disabled="showResult">
     </div>
 
     <!-- AI Suggestion -->
     <div class="ai-suggestion" v-if="aiSuggestion && !isCorrect">
-      <span class="suggestion-icon">🤖</span>
+      <FeatherIcon type="cpu" :size="18" class="suggestion-icon" />
       <span class="suggestion-text">{{ aiSuggestion }}</span>
     </div>
-    
+
     <div class="quiz-result" v-if="showResult">
       <div class="result-badge" :class="isCorrect ? 'result-correct' : 'result-wrong'">
-        {{ isCorrect ? '✓ Chính xác!' : '✗ Sai rồi!' }}
+        <FeatherIcon v-if="isCorrect" type="check" :size="16" />
+        <FeatherIcon v-else type="x" :size="16" />
+        {{ isCorrect ? 'Chính xác!' : 'Sai rồi!' }}
       </div>
       <div class="correct-answer" v-if="!isCorrect">
         <span class="label">Đáp án đúng:</span>
@@ -42,12 +37,10 @@
 
       <!-- AI Hint Section -->
       <div class="ai-hint-section" v-if="!isCorrect">
-        <button 
-          class="btn btn-ghost btn-sm ai-hint-btn" 
-          @click="getAIHint"
-          :disabled="loadingHint"
-        >
-          {{ loadingHint ? '⏳ Đang tải...' : '💡 Xem gợi ý AI' }}
+        <button class="btn btn-ghost btn-sm ai-hint-btn" @click="getAIHint" :disabled="loadingHint">
+          <FeatherIcon v-if="loadingHint" type="loader" :size="14" class="spin" />
+          <FeatherIcon v-else type="zap" :size="14" />
+          {{ loadingHint ? 'Đang tải...' : 'Xem gợi ý AI' }}
         </button>
         <div class="ai-hint-box" v-if="aiHint">
           <div class="hint-content">
@@ -59,22 +52,17 @@
         </div>
       </div>
     </div>
-    
+
     <div class="quiz-actions">
-      <button 
-        v-if="!showResult" 
-        class="btn btn-primary btn-lg" 
-        @click="checkAnswer"
-        :disabled="!answer.trim() || checkingAI"
-      >
-        {{ checkingAI ? '🤖 Đang kiểm tra...' : 'Kiểm tra' }}
+      <button v-if="!showResult" class="btn btn-primary btn-lg" @click="checkAnswer"
+        :disabled="!answer.trim() || checkingAI">
+        <FeatherIcon v-if="checkingAI" type="loader" :size="16" class="spin" />
+        <FeatherIcon v-else type="cpu" :size="16" />
+        {{ checkingAI ? 'Đang kiểm tra...' : 'Kiểm tra' }}
       </button>
-      <button 
-        v-else 
-        class="btn btn-primary btn-lg" 
-        @click="$emit('next')"
-      >
-        {{ current + 1 < total ? 'Tiếp theo' : 'Xem kết quả' }}
+      <button v-else class="btn btn-primary btn-lg" @click="$emit('next')">
+        {{ current + 1
+          < total ? 'Tiếp theo' : 'Xem kết quả' }} <FeatherIcon type="arrow-right" :size="16" />
       </button>
     </div>
   </div>
@@ -83,6 +71,7 @@
 <script setup>
 import { ref, computed, watch, nextTick } from 'vue'
 import { api } from '../services/api.js'
+import FeatherIcon from './FeatherIcon.vue'
 
 const props = defineProps({
   word: {
@@ -158,10 +147,10 @@ function normalize(str) {
 
 async function checkAnswer() {
   if (!answer.value.trim()) return
-  
+
   const userAnswer = normalize(answer.value)
   const correct = normalize(correctAnswer.value)
-  
+
   // Quick local check first
   let localCorrect = false
   if (props.mode === 'en-vn') {
@@ -182,14 +171,14 @@ async function checkAnswer() {
   // Use AI for semantic checking
   checkingAI.value = true
   try {
-    const context = props.mode === 'en-vn' 
+    const context = props.mode === 'en-vn'
       ? `Chế độ: Anh → Việt. Từ gốc: ${props.word.english}`
       : props.mode === 'vn-en'
-      ? `Chế độ: Việt → Anh. Từ gốc: ${props.word.vietnamese}`
-      : `Chế độ: Nghĩa → Từ. Nghĩa: ${props.word.meaning}`
+        ? `Chế độ: Việt → Anh. Từ gốc: ${props.word.vietnamese}`
+        : `Chế độ: Nghĩa → Từ. Nghĩa: ${props.word.meaning}`
 
     const result = await api.checkSpelling(answer.value, correctAnswer.value, context)
-    
+
     if (result.success) {
       isCorrect.value = result.isCorrect
       if (!result.isCorrect && result.suggestion) {
@@ -203,7 +192,7 @@ async function checkAnswer() {
     console.error('AI check failed:', e)
     isCorrect.value = localCorrect
   }
-  
+
   checkingAI.value = false
   showResult.value = true
   emit('answer', isCorrect.value)
@@ -310,7 +299,9 @@ watch(() => props.word, () => {
 }
 
 .result-badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   padding: 0.5rem 1rem;
   border-radius: var(--radius-full);
   font-weight: 600;
@@ -350,6 +341,12 @@ watch(() => props.word, () => {
   padding-top: 1rem;
 }
 
+.quiz-actions .btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 /* AI Features Styles */
 .ai-suggestion {
   display: flex;
@@ -362,7 +359,7 @@ watch(() => props.word, () => {
 }
 
 .suggestion-icon {
-  font-size: 1.25rem;
+  color: var(--mint-500);
 }
 
 .suggestion-text {
@@ -378,6 +375,9 @@ watch(() => props.word, () => {
 .ai-hint-btn {
   color: var(--mint-500);
   font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .ai-hint-btn:hover {
@@ -406,5 +406,19 @@ watch(() => props.word, () => {
 .hint-content strong,
 .memory-tip strong {
   color: var(--mint-500);
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>
