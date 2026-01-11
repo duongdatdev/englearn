@@ -15,15 +15,15 @@ import AIAssistant from './components/AIAssistant.vue'
 
 <style>
 .main-content {
-  min-height: calc(100vh - 72px);
-  padding: 2.5rem;
-  max-width: 1440px;
+  min-height: calc(100vh - 68px);
+  padding: 2rem;
+  max-width: 1320px;
   margin: 0 auto;
 }
 
 @media (max-width: 768px) {
   .main-content {
-    padding: 1.5rem;
+    padding: 1.25rem;
   }
 }
 </style>
