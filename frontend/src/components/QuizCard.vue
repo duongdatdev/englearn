@@ -60,9 +60,14 @@
         <FeatherIcon v-else type="cpu" :size="16" />
         {{ checkingAI ? 'Đang kiểm tra...' : 'Kiểm tra' }}
       </button>
+      <!-- Show retry button when answer is wrong -->
+      <button v-else-if="!isCorrect" class="btn btn-secondary btn-lg" @click="retryAnswer">
+        <FeatherIcon type="refresh-cw" :size="16" />
+        Thử lại
+      </button>
+      <!-- Only show next button when answer is correct -->
       <button v-else class="btn btn-primary btn-lg" @click="$emit('next')">
-        {{ current + 1
-          < total ? 'Tiếp theo' : 'Xem kết quả' }} <FeatherIcon type="arrow-right" :size="16" />
+        {{ current + 1 < total ? 'Tiếp theo' : 'Xem kết quả' }} <FeatherIcon type="arrow-right" :size="16" />
       </button>
     </div>
   </div>
@@ -222,6 +227,17 @@ async function getAIHint() {
     console.error('Get hint failed:', e)
   }
   loadingHint.value = false
+}
+
+function retryAnswer() {
+  answer.value = ''
+  showResult.value = false
+  isCorrect.value = false
+  aiSuggestion.value = ''
+  aiHint.value = null
+  nextTick(() => {
+    inputRef.value?.focus()
+  })
 }
 
 watch(() => props.word, () => {
