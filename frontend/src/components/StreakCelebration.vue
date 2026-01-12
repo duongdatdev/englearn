@@ -65,6 +65,17 @@ const props = defineProps({
 
 const emit = defineEmits(['close'])
 
+import { useSoundEffects } from '../composables/useSoundEffects.js'
+const { playLevelUp } = useSoundEffects()
+
+// Watch for show changes to play sound
+import { watch } from 'vue'
+watch(() => props.show, (newVal) => {
+    if (newVal) {
+        playLevelUp()
+    }
+})
+
 const animationClass = computed(() => {
     switch (props.type) {
         case 'streak': return 'bounce-fire'

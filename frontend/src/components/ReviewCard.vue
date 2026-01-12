@@ -73,6 +73,9 @@
 import { ref, computed } from 'vue'
 import FeatherIcon from './FeatherIcon.vue'
 import { updateCardProgress, QUALITY } from '../services/srs.js'
+import { useSoundEffects } from '../composables/useSoundEffects.js'
+
+const { playFlip, playSuccess, playNotification } = useSoundEffects()
 
 const props = defineProps({
     word: {
@@ -90,6 +93,7 @@ const nextReviewInfo = ref('')
 function flip() {
     if (!rated.value) {
         isFlipped.value = !isFlipped.value
+        playFlip()
     }
 }
 
@@ -111,6 +115,13 @@ function rate(quality) {
     }
 
     emit('rated', { wordId: props.word.wordId, quality, result })
+    
+    // Play sound based on rating
+    if (quality >= 4) {
+        playSuccess()
+    } else {
+        playNotification()
+    }
 
     // Auto advance after rating
     setTimeout(() => {

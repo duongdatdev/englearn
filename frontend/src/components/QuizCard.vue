@@ -72,6 +72,9 @@
 import { ref, computed, watch, nextTick } from 'vue'
 import { api } from '../services/api.js'
 import FeatherIcon from './FeatherIcon.vue'
+import { useSoundEffects } from '../composables/useSoundEffects.js'
+
+const { playSuccess, playError } = useSoundEffects()
 
 const props = defineProps({
   word: {
@@ -164,6 +167,7 @@ async function checkAnswer() {
   if (localCorrect) {
     isCorrect.value = true
     showResult.value = true
+    playSuccess()
     emit('answer', true)
     return
   }
@@ -195,6 +199,14 @@ async function checkAnswer() {
 
   checkingAI.value = false
   showResult.value = true
+  
+  // Play sound based on result
+  if (isCorrect.value) {
+    playSuccess()
+  } else {
+    playError()
+  }
+  
   emit('answer', isCorrect.value)
 }
 

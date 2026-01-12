@@ -251,8 +251,11 @@
 <script setup>
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useAudio } from '../composables/useAudio.js'
+import { useSoundEffects } from '../composables/useSoundEffects.js'
 import { api } from '../services/api.js'
 import FeatherIcon from './FeatherIcon.vue'
+
+const { playSuccess, playError, playClick, playLevelUp, playStepComplete } = useSoundEffects()
 
 const props = defineProps({
     word: {
@@ -325,6 +328,7 @@ function playWordAudio() {
 
 function goToStep(step) {
     currentStep.value = step
+    playClick()
     if (step === 1) {
         startCountdown()
     }
@@ -381,6 +385,12 @@ function selectAnswer(index) {
     selectedAnswer.value = index
     showResult.value = true
     isCorrect.value = index === correctAnswerIndex.value
+    
+    if (isCorrect.value) {
+        playSuccess()
+    } else {
+        playError()
+    }
 }
 
 function checkTypedAnswer() {
@@ -388,6 +398,12 @@ function checkTypedAnswer() {
 
     showResult.value = true
     isCorrect.value = typedAnswer.value.trim().toLowerCase() === props.word.english.toLowerCase()
+    
+    if (isCorrect.value) {
+        playSuccess()
+    } else {
+        playError()
+    }
 }
 
 function completeWord() {
@@ -432,6 +448,13 @@ async function gradeSentence() {
                 tips: result.tips || ''
             }
             showGradeResult.value = true
+            
+            // Play sound based on score
+            if (result.score >= 70) {
+                playLevelUp()
+            } else {
+                playStepComplete()
+            }
         } else {
             gradeError.value = result.message || 'Lỗi chấm điểm. Vui lòng thử lại.'
         }
@@ -971,9 +994,10 @@ defineExpose({ reset })
     justify-content: center;
     gap: 0.75rem;
     padding: 1rem 1.5rem;
-    background: linear-gradient(135deg, var(--mint-50), var(--mint-100));
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.25));
     border-radius: var(--radius-lg);
     margin-bottom: 1.5rem;
+    border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
 .word-reminder-english {

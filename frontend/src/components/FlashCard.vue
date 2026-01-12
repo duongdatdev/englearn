@@ -130,8 +130,11 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useAudio } from '../composables/useAudio.js'
+import { useSoundEffects } from '../composables/useSoundEffects.js'
 import { api } from '../services/api.js'
 import FeatherIcon from './FeatherIcon.vue'
+
+const { playFlip } = useSoundEffects()
 
 const props = defineProps({
   word: {
@@ -170,6 +173,7 @@ const frontContent = computed(() => {
 
 function flip() {
   isFlipped.value = !isFlipped.value
+  playFlip()
 }
 
 function reset() {

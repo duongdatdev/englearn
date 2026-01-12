@@ -20,6 +20,12 @@
           <span>Quản lý</span>
         </router-link>
         <NotificationDropdown />
+        
+        <!-- Sound Toggle -->
+        <button class="sound-toggle" @click="toggleSound" :title="isSoundEnabled ? 'Tắt âm thanh' : 'Bật âm thanh'">
+          <FeatherIcon :type="isSoundEnabled ? 'volume-2' : 'volume-x'" :size="18" />
+        </button>
+        
         <ThemeToggle />
       </div>
     </div>
@@ -30,6 +36,9 @@
 import ThemeToggle from './ThemeToggle.vue'
 import FeatherIcon from './FeatherIcon.vue'
 import NotificationDropdown from './NotificationDropdown.vue'
+import { useSoundEffects } from '../composables/useSoundEffects.js'
+
+const { isSoundEnabled, toggleSound } = useSoundEffects()
 </script>
 
 <style scoped>
@@ -112,5 +121,25 @@ import NotificationDropdown from './NotificationDropdown.vue'
   .nav-link span:not(.nav-icon) {
     display: none;
   }
+}
+
+/* Sound Toggle */
+.sound-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-lg);
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.sound-toggle:hover {
+  background-color: var(--bg-tertiary);
+  color: var(--mint-500);
 }
 </style>
