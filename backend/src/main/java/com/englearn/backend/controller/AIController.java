@@ -138,4 +138,46 @@ public class AIController {
         AIResponse response = geminiService.smartSearch(request.getInput(), wordList);
         return ResponseEntity.ok(response);
     }
+
+    /**
+     * Generate paragraph with fill-in-the-blank for vocabulary practice
+     */
+    @PostMapping("/paragraph-blanks")
+    public ResponseEntity<AIResponse> generateParagraphBlanks(@RequestBody AIRequest request) {
+        if (request.getWords() == null || request.getWords().isEmpty()) {
+            return ResponseEntity.badRequest().body(
+                AIResponse.builder()
+                    .success(false)
+                    .message("Vui lòng cung cấp danh sách từ vựng")
+                    .build()
+            );
+        }
+        
+        String topic = request.getTopic() != null ? request.getTopic() : "General Business";
+        AIResponse response = geminiService.generateParagraphWithBlanks(request.getWords(), topic);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Grade a user's sentence using a vocabulary word
+     */
+    @PostMapping("/grade-sentence")
+    public ResponseEntity<AIResponse> gradeSentence(@RequestBody AIRequest request) {
+        if (request.getWord() == null || request.getUserSentence() == null) {
+            return ResponseEntity.badRequest().body(
+                AIResponse.builder()
+                    .success(false)
+                    .message("Vui lòng cung cấp từ vựng và câu cần chấm điểm")
+                    .build()
+            );
+        }
+        
+        String vietnamese = request.getVietnamese() != null ? request.getVietnamese() : "";
+        AIResponse response = geminiService.gradeSentence(
+            request.getWord(),
+            vietnamese,
+            request.getUserSentence()
+        );
+        return ResponseEntity.ok(response);
+    }
 }

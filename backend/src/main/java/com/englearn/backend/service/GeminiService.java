@@ -201,6 +201,85 @@ public class GeminiService {
         return callGeminiAndParse(prompt, "smart-search");
     }
 
+    /**
+     * Grade a user's sentence using a vocabulary word
+     */
+    public AIResponse gradeSentence(String word, String vietnamese, String userSentence) {
+        String prompt = String.format("""
+            Bạn là giáo viên tiếng Anh chuyên nghiệp. Hãy chấm điểm câu tiếng Anh mà học viên đã viết.
+            
+            Từ vựng cần sử dụng: "%s" (nghĩa: %s)
+            Câu của học viên: "%s"
+            
+            Tiêu chí đánh giá:
+            1. Từ vựng có được sử dụng đúng nghĩa và ngữ cảnh không?
+            2. Câu có đúng ngữ pháp không?
+            3. Câu có tự nhiên và thường được sử dụng không?
+            
+            Trả lời theo định dạng JSON:
+            {
+                "score": (điểm từ 0-100),
+                "feedback": "nhận xét ngắn gọn bằng tiếng Việt về câu của học viên",
+                "correctedSentence": "câu đã chỉnh sửa nếu có lỗi, hoặc chuỗi rỗng nếu câu đúng",
+                "tips": "mẹo để cải thiện hoặc ghi nhớ cách dùng từ này"
+            }
+            
+            Quy tắc chấm điểm:
+            - 90-100: Câu hoàn hảo, tự nhiên, đúng ngữ pháp
+            - 70-89: Câu đúng nhưng có thể cải thiện
+            - 50-69: Câu có lỗi nhỏ về ngữ pháp hoặc cách dùng
+            - 30-49: Câu có lỗi đáng kể
+            - 0-29: Câu sai hoàn toàn hoặc không sử dụng từ vựng
+            
+            Chỉ trả về JSON, không thêm text khác.
+            """, word, vietnamese, userSentence);
+
+        return callGeminiAndParse(prompt, "sentence-grade");
+    }
+
+    /**
+     * Generate a paragraph with fill-in-the-blank for vocabulary practice
+     */
+    public AIResponse generateParagraphWithBlanks(List<Map<String, String>> words, String topic) {
+        // Build word list string - use all words (up to 12)
+        StringBuilder wordListBuilder = new StringBuilder();
+        for (int i = 0; i < words.size(); i++) {
+            Map<String, String> word = words.get(i);
+            wordListBuilder.append(String.format("%d. %s (%s)", 
+                i + 1, 
+                word.get("english"), 
+                word.get("vietnamese")));
+            if (i < words.size() - 1) {
+                wordListBuilder.append("\n");
+            }
+        }
+        
+        String prompt = String.format("""
+            Bạn là giáo viên tiếng Anh. Hãy tạo một đoạn văn ngắn (4-6 câu) về chủ đề "%s" sử dụng các từ vựng sau:
+            
+            %s
+            
+            Yêu cầu:
+            1. Đoạn văn phải tự nhiên, mạch lạc và phù hợp với ngữ cảnh TOEIC/business
+            2. Sử dụng TẤT CẢ các từ trong danh sách
+            3. Thay thế mỗi từ được sử dụng bằng chỗ trống đánh số: (1), (2), (3)...
+            4. Đánh số theo thứ tự xuất hiện trong đoạn văn
+            
+            Trả lời CHÍNH XÁC theo định dạng JSON sau:
+            {
+                "paragraph": "Đoạn văn với các chỗ trống (1), (2)...",
+                "blanks": [
+                    {"position": 1, "answer": "từ tiếng Anh", "vietnamese": "nghĩa tiếng Việt"},
+                    {"position": 2, "answer": "từ tiếng Anh", "vietnamese": "nghĩa tiếng Việt"}
+                ]
+            }
+            
+            Chỉ trả về JSON, không thêm text khác.
+            """, topic, wordListBuilder.toString());
+
+        return callGeminiAndParse(prompt, "paragraph-blanks");
+    }
+
     private AIResponse callGeminiAndParse(String prompt, String type) {
         try {
             Map<String, Object> requestBody = Map.of(
@@ -211,7 +290,7 @@ public class GeminiService {
                 ),
                 "generationConfig", Map.of(
                     "temperature", 0.7,
-                    "maxOutputTokens", 1024
+                    "maxOutputTokens", 16384
                 )
             );
 
@@ -250,12 +329,36 @@ public class GeminiService {
     private AIResponse parseGeminiResponse(String response, String type) {
         try {
             JsonNode root = objectMapper.readTree(response);
+            
+            // Check if response was truncated (finishReason != STOP)
+            JsonNode candidates = root.path("candidates");
+            if (candidates.isArray() && candidates.size() > 0) {
+                String finishReason = candidates.get(0).path("finishReason").asText();
+                if ("MAX_TOKENS".equals(finishReason)) {
+                    return AIResponse.builder()
+                        .success(false)
+                        .message("Response bị cắt ngắn do quá dài. Vui lòng thử lại.")
+                        .build();
+                }
+            }
+            
             String text = root.path("candidates").get(0)
                 .path("content").path("parts").get(0)
                 .path("text").asText();
             
             // Clean up response - remove markdown code blocks if present
             text = text.replaceAll("```json\\s*", "").replaceAll("```\\s*", "").trim();
+            
+            // Validate JSON structure before parsing
+            if (text.isEmpty() || (!text.startsWith("{") && !text.startsWith("["))) {
+                return AIResponse.builder()
+                    .success(false)
+                    .message("Response không phải định dạng JSON hợp lệ.")
+                    .build();
+            }
+            
+            // Try to fix common JSON truncation issues
+            text = fixTruncatedJson(text);
             
             JsonNode jsonResponse = objectMapper.readTree(text);
             
@@ -287,6 +390,28 @@ public class GeminiService {
                     builder.synonyms(parseStringList(jsonResponse.path("suggestions")));
                     builder.explanation(jsonResponse.path("explanation").asText());
                 }
+                case "paragraph-blanks" -> {
+                    builder.paragraph(jsonResponse.path("paragraph").asText());
+                    // Parse blanks array
+                    List<Map<String, Object>> blanksList = new ArrayList<>();
+                    JsonNode blanksNode = jsonResponse.path("blanks");
+                    if (blanksNode.isArray()) {
+                        for (JsonNode blank : blanksNode) {
+                            Map<String, Object> blankMap = new java.util.HashMap<>();
+                            blankMap.put("position", blank.path("position").asInt());
+                            blankMap.put("answer", blank.path("answer").asText());
+                            blankMap.put("vietnamese", blank.path("vietnamese").asText());
+                            blanksList.add(blankMap);
+                        }
+                    }
+                    builder.blanks(blanksList);
+                }
+                case "sentence-grade" -> {
+                    builder.score(jsonResponse.path("score").asInt());
+                    builder.feedback(jsonResponse.path("feedback").asText());
+                    builder.correctedSentence(jsonResponse.path("correctedSentence").asText());
+                    builder.tips(jsonResponse.path("tips").asText());
+                }
             }
             
             return builder.build();
@@ -306,5 +431,57 @@ public class GeminiService {
             }
         }
         return result;
+    }
+
+    /**
+     * Attempt to fix common JSON truncation issues
+     */
+    private String fixTruncatedJson(String json) {
+        if (json == null || json.isEmpty()) {
+            return json;
+        }
+        
+        // Count brackets and quotes to check if balanced
+        int openBraces = 0;
+        int openBrackets = 0;
+        boolean inString = false;
+        char prevChar = 0;
+        
+        for (int i = 0; i < json.length(); i++) {
+            char c = json.charAt(i);
+            
+            if (c == '"' && prevChar != '\\') {
+                inString = !inString;
+            } else if (!inString) {
+                if (c == '{') openBraces++;
+                else if (c == '}') openBraces--;
+                else if (c == '[') openBrackets++;
+                else if (c == ']') openBrackets--;
+            }
+            
+            prevChar = c;
+        }
+        
+        // If unbalanced, try to fix
+        StringBuilder fixed = new StringBuilder(json);
+        
+        // Close unclosed string
+        if (inString) {
+            fixed.append("\"");
+        }
+        
+        // Close unclosed brackets
+        while (openBrackets > 0) {
+            fixed.append("]");
+            openBrackets--;
+        }
+        
+        // Close unclosed braces
+        while (openBraces > 0) {
+            fixed.append("}");
+            openBraces--;
+        }
+        
+        return fixed.toString();
     }
 }

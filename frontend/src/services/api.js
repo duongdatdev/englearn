@@ -157,5 +157,23 @@ export const api = {
       body: JSON.stringify({ input })
     })
     return response.json()
+  },
+
+  async generateParagraphBlanks(words, topic) {
+    const response = await fetch(`${API_URL}/ai/paragraph-blanks`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ words, topic })
+    })
+    return response.json()
+  },
+
+  async gradeSentence(word, vietnamese, userSentence) {
+    const response = await fetch(`${API_URL}/ai/grade-sentence`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ word, vietnamese, userSentence })
+    })
+    return response.json()
   }
 }

@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import java.util.List;
+import java.util.Map;
 
 @Data
 @NoArgsConstructor
@@ -34,4 +35,14 @@ public class AIResponse {
     // Quiz Hint
     private String hint;
     private String memoryTip;
+    
+    // Paragraph Fill-in-the-Blank
+    private String paragraph;
+    private List<Map<String, Object>> blanks;
+    
+    // Sentence Grading
+    private int score;
+    private String feedback;
+    private String correctedSentence;
+    private String tips;
 }

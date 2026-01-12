@@ -131,17 +131,45 @@ export async function exportDatabase() {
 }
 
 export async function importDatabase(data) {
-  // This is tricky. Do we wipe Backend? 
-  // AdminView says "Import will overwrite existing data".
-  // Existing local logic was db.books.clear().
-  // Does Backend have clear all? No.
-  // So implementing 'importDatabase' properly on backend requires a 'reset' endpoint.
-  // Or we delete one by one (slow).
-  // For now, let's ALERT that import behavior might be different or unimplemented.
-  console.warn("Import not fully supported with backend switch yet.")
-  // We can attempt to create but IDs will conflict if we don't clear.
-  // For safety, let's throw or check.
-  alert("Tính năng Import hiện đang bị khóa khi chuyển sang Backend.")
+  // Import adds new books (and their topics/words) rather than overwriting
+  const { books = [], topics = [], words = [] } = data
+
+  const bookIdMap = new Map() // old ID -> new ID
+  const topicIdMap = new Map() // old ID -> new ID
+
+  // 1. Create books
+  for (const book of books) {
+    const { id, ...bookData } = book
+    const newBook = await api.createBook(bookData)
+    bookIdMap.set(id, newBook.id)
+  }
+
+  // 2. Create topics with new bookId
+  for (const topic of topics) {
+    const { id, bookId, ...topicData } = topic
+    const newBookId = bookIdMap.get(bookId)
+    if (newBookId) {
+      topicData.book = { id: newBookId }
+      const newTopic = await api.createTopic(topicData)
+      topicIdMap.set(id, newTopic.id)
+    }
+  }
+
+  // 3. Create words with new topicId
+  for (const word of words) {
+    const { id, topicId, ...wordData } = word
+    const newTopicId = topicIdMap.get(topicId)
+    if (newTopicId) {
+      wordData.topic = { id: newTopicId }
+      await api.createWord(wordData)
+    }
+  }
+
+  return {
+    booksImported: bookIdMap.size,
+    topicsImported: topicIdMap.size,
+    wordsImported: words.length
+  }
 }
 
 // Check if database is empty - Now check Backend

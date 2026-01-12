@@ -17,6 +17,11 @@ const routes = [
     component: () => import('../views/TopicView.vue')
   },
   {
+    path: '/learn/:topicId',
+    name: 'Learn',
+    component: () => import('../views/LearnView.vue')
+  },
+  {
     path: '/flashcard/:topicId',
     name: 'FlashCard',
     component: () => import('../views/FlashCardView.vue')
@@ -35,6 +40,11 @@ const routes = [
     path: '/admin',
     name: 'Admin',
     component: () => import('../views/AdminView.vue')
+  },
+  {
+    path: '/paragraph/:topicId',
+    name: 'Paragraph',
+    component: () => import('../views/ParagraphPracticeView.vue')
   }
 ]
 

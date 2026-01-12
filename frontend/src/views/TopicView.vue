@@ -16,45 +16,79 @@
     </header>
 
     <section class="mode-selection">
-      <h2 class="section-title">Chọn chế độ học</h2>
+      <h2 class="section-title">Chọn chế độ</h2>
 
-      <div class="mode-grid">
-        <div class="mode-card card card-clickable" @click="startFlashCard">
-          <span class="mode-icon">
-            <FeatherIcon type="credit-card" :size="32" />
+      <div class="mode-categories">
+        <!-- Primary: Learn Mode -->
+        <div class="mode-category">
+          <span class="category-label">
+            <FeatherIcon type="book-open" :size="14" /> Học mới
           </span>
-          <h3 class="mode-name">Flash Card</h3>
-          <p class="mode-desc">Học từ vựng qua thẻ ghi nhớ</p>
+          <div class="mode-card mode-card-primary card card-clickable" @click="startLearn">
+            <span class="mode-icon primary">
+              <FeatherIcon type="book-open" :size="32" />
+            </span>
+            <div class="mode-info">
+              <h3 class="mode-name">Học từ mới</h3>
+              <p class="mode-desc">Học từ vựng qua 3 bước: Xem → Nghe → Kiểm tra</p>
+            </div>
+            <span class="mode-badge new">Mới</span>
+          </div>
         </div>
 
-        <div class="mode-card card card-clickable" @click="startQuiz('vn-en')">
-          <span class="mode-icon">
-            <FeatherIcon type="globe" :size="24" />
-            <FeatherIcon type="arrow-right" :size="16" />
-            <span class="flag-text">EN</span>
+        <!-- Secondary: Review Modes -->
+        <div class="mode-category">
+          <span class="category-label">
+            <FeatherIcon type="refresh-cw" :size="14" /> Ôn tập
           </span>
-          <h3 class="mode-name">Việt → Anh</h3>
-          <p class="mode-desc">Xem tiếng Việt, gõ tiếng Anh</p>
-        </div>
+          <div class="mode-grid">
+            <div class="mode-card card card-clickable" @click="startFlashCard">
+              <span class="mode-icon">
+                <FeatherIcon type="credit-card" :size="28" />
+              </span>
+              <h3 class="mode-name">Flash Card</h3>
+              <p class="mode-desc">Lật thẻ ghi nhớ</p>
+            </div>
 
-        <div class="mode-card card card-clickable" @click="startQuiz('en-vn')">
-          <span class="mode-icon">
-            <span class="flag-text">EN</span>
-            <FeatherIcon type="arrow-right" :size="16" />
-            <FeatherIcon type="globe" :size="24" />
-          </span>
-          <h3 class="mode-name">Anh → Việt</h3>
-          <p class="mode-desc">Xem tiếng Anh, gõ tiếng Việt</p>
-        </div>
+            <div class="mode-card card card-clickable" @click="startQuiz('vn-en')">
+              <span class="mode-icon">
+                <FeatherIcon type="globe" :size="22" />
+                <FeatherIcon type="arrow-right" :size="14" />
+                <span class="flag-text">EN</span>
+              </span>
+              <h3 class="mode-name">Việt → Anh</h3>
+              <p class="mode-desc">Gõ tiếng Anh</p>
+            </div>
 
-        <div class="mode-card card card-clickable" @click="startQuiz('meaning-word')">
-          <span class="mode-icon">
-            <FeatherIcon type="book-open" :size="24" />
-            <FeatherIcon type="arrow-right" :size="16" />
-            <FeatherIcon type="edit-3" :size="24" />
-          </span>
-          <h3 class="mode-name">Nghĩa → Từ</h3>
-          <p class="mode-desc">Xem định nghĩa, gõ từ tiếng Anh</p>
+            <div class="mode-card card card-clickable" @click="startQuiz('en-vn')">
+              <span class="mode-icon">
+                <span class="flag-text">EN</span>
+                <FeatherIcon type="arrow-right" :size="14" />
+                <FeatherIcon type="globe" :size="22" />
+              </span>
+              <h3 class="mode-name">Anh → Việt</h3>
+              <p class="mode-desc">Gõ tiếng Việt</p>
+            </div>
+
+            <div class="mode-card card card-clickable" @click="startQuiz('meaning-word')">
+              <span class="mode-icon">
+                <FeatherIcon type="book" :size="22" />
+                <FeatherIcon type="arrow-right" :size="14" />
+                <FeatherIcon type="edit-3" :size="22" />
+              </span>
+              <h3 class="mode-name">Nghĩa → Từ</h3>
+              <p class="mode-desc">Gõ từ tiếng Anh</p>
+            </div>
+
+            <div class="mode-card mode-card-ai card card-clickable" @click="startParagraphPractice">
+              <span class="mode-icon ai">
+                <FeatherIcon type="file-text" :size="22" />
+                <FeatherIcon type="cpu" :size="14" />
+              </span>
+              <h3 class="mode-name">Điền đoạn văn</h3>
+              <p class="mode-desc">AI tạo đoạn văn</p>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -188,12 +222,20 @@ function clearAISearch() {
   aiMatchedWords.value = []
 }
 
+function startLearn() {
+  router.push(`/learn/${topic.value.id}`)
+}
+
 function startFlashCard() {
   router.push(`/flashcard/${topic.value.id}`)
 }
 
 function startQuiz(mode) {
   router.push(`/quiz/${topic.value.id}/${mode}`)
+}
+
+function startParagraphPractice() {
+  router.push(`/paragraph/${topic.value.id}`)
 }
 </script>
 
@@ -248,68 +290,221 @@ function startQuiz(mode) {
   color: var(--text-primary);
 }
 
+/* Mode Categories */
+.mode-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.mode-category {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.category-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+/* Primary Learn Card */
+.mode-card-primary {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, var(--mint-50), rgba(16, 185, 129, 0.08));
+  border: 2px solid var(--mint-200);
+  position: relative;
+  overflow: hidden;
+}
+
+.mode-card-primary:hover {
+  border-color: var(--mint-400);
+  background: linear-gradient(135deg, var(--mint-100), rgba(16, 185, 129, 0.12));
+}
+
+[data-theme="dark"] .mode-card-primary {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05));
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+[data-theme="dark"] .mode-card-primary:hover {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1));
+  border-color: var(--mint-500);
+}
+
+.mode-card-primary .mode-icon.primary {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--mint-400), var(--mint-500));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.mode-info {
+  flex: 1;
+  text-align: left;
+}
+
+.mode-info .mode-name {
+  font-size: 1.15rem;
+  margin-bottom: 0.25rem;
+}
+
+.mode-info .mode-desc {
+  font-size: 0.875rem;
+}
+
+.mode-badge {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.mode-badge.new {
+  background: linear-gradient(135deg, #f59e0b, #f97316);
+  color: white;
+}
+
+/* Mode Grid for Review Cards */
 .mode-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-  margin-bottom: 2.5rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
 }
 
 .mode-card {
   text-align: center;
-  padding: 1.5rem;
+  padding: 1.25rem 1rem;
 }
 
 .mode-icon {
-  font-size: 2rem;
+  font-size: 1.75rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.25rem;
-  margin-bottom: 0.75rem;
+  gap: 0.2rem;
+  margin-bottom: 0.6rem;
   color: var(--mint-500);
 }
 
 .flag-text {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: var(--mint-600);
 }
 
 .mode-name {
-  font-size: 1.125rem;
-  margin-bottom: 0.25rem;
+  font-size: 1rem;
+  margin-bottom: 0.2rem;
   color: var(--text-primary);
 }
 
 .mode-desc {
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
 }
 
+.mode-card-ai {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(124, 58, 237, 0.08));
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.mode-card-ai:hover {
+  border-color: rgba(139, 92, 246, 0.4);
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(124, 58, 237, 0.12));
+}
+
+.mode-icon.ai {
+  color: #8b5cf6;
+}
+
 .word-list {
-  max-height: 400px;
+  max-height: 450px;
   overflow-y: auto;
+  padding-right: 0.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--mint-400) transparent;
+}
+
+/* Custom Scrollbar for word-list */
+.word-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.word-list::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 3px;
+  margin: 0.5rem 0;
+}
+
+.word-list::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--mint-400), var(--mint-500));
+  border-radius: 3px;
+  transition: background 0.2s;
+}
+
+.word-list::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--mint-500), var(--mint-600));
+}
+
+[data-theme="dark"] .word-list::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--mint-500), var(--mint-600));
+}
+
+[data-theme="dark"] .word-list::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--mint-400), var(--mint-500));
 }
 
 .word-item {
   display: flex;
   justify-content: space-between;
-  padding: 0.75rem 0;
+  align-items: center;
+  padding: 0.875rem 1rem;
   border-bottom: 1px solid var(--border-color);
+  transition: background 0.15s ease;
+  border-radius: 8px;
+  margin-bottom: 2px;
+}
+
+.word-item:hover {
+  background: var(--bg-tertiary);
 }
 
 .word-item:last-child {
   border-bottom: none;
+  margin-bottom: 0;
 }
 
 .word-english {
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-primary);
+  font-size: 0.95rem;
 }
 
 .word-vietnamese {
   color: var(--text-muted);
+  font-size: 0.9rem;
+  text-align: right;
 }
 
 .word-info-left {
@@ -322,8 +517,8 @@ function startQuiz(mode) {
   background: none;
   border: none;
   cursor: pointer;
-  opacity: 0.6;
-  padding: 0.25rem;
+  opacity: 0.5;
+  padding: 0.35rem;
   border-radius: 50%;
   transition: all var(--transition-fast);
   display: flex;
@@ -335,13 +530,27 @@ function startQuiz(mode) {
 .btn-icon-audio:hover {
   opacity: 1;
   background-color: var(--mint-100);
-  transform: scale(1.1);
+  transform: scale(1.15);
   color: var(--mint-500);
 }
 
 @media (max-width: 768px) {
   .mode-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .mode-card-primary {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .mode-info {
+    text-align: center;
+  }
+
+  .mode-badge {
+    position: static;
+    margin-top: 0.5rem;
   }
 
   .topic-name {
@@ -354,7 +563,7 @@ function startQuiz(mode) {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
   gap: 1rem;
   flex-wrap: wrap;
 }
@@ -368,50 +577,68 @@ function startQuiz(mode) {
   align-items: center;
   gap: 0.5rem;
   position: relative;
+  background: var(--card-bg);
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  padding: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.ai-search-box:focus-within {
+  border-color: var(--mint-400);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
 
 .search-icon {
   position: absolute;
-  left: 0.75rem;
+  left: 1rem;
   color: var(--text-muted);
+  pointer-events: none;
 }
 
 .search-input {
-  padding: 0.5rem 1rem 0.5rem 2.25rem;
-  border: 2px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  font-size: 0.9rem;
-  min-width: 280px;
-  background: var(--input-bg);
+  padding: 0.6rem 1rem 0.6rem 2.5rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  min-width: 320px;
+  background: transparent;
   color: var(--text-primary);
 }
 
 .search-input:focus {
   outline: none;
-  border-color: var(--mint-400);
+}
+
+.search-input::placeholder {
+  color: var(--text-muted);
+  font-size: 0.85rem;
 }
 
 .btn-ai-search {
-  padding: 0.5rem 0.75rem;
+  padding: 0.5rem 0.85rem;
   background: linear-gradient(135deg, var(--mint-500), var(--mint-600));
   border: none;
-  border-radius: var(--radius-lg);
+  border-radius: 8px;
   color: white;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
   display: flex;
   align-items: center;
   gap: 0.35rem;
+  white-space: nowrap;
 }
 
 .btn-ai-search:hover {
-  transform: scale(1.05);
+  transform: scale(1.03);
   box-shadow: 0 2px 10px rgba(16, 185, 129, 0.4);
 }
 
 .searching-indicator {
   color: var(--mint-500);
+  margin-right: 0.5rem;
 }
 
 .ai-search-result {
@@ -420,10 +647,10 @@ function startQuiz(mode) {
   gap: 0.5rem;
   padding: 0.75rem 1rem;
   margin-bottom: 1rem;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(59, 130, 246, 0.1));
-  border-radius: var(--radius-lg);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  font-size: 0.9rem;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(59, 130, 246, 0.08));
+  border-radius: 10px;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  font-size: 0.875rem;
   color: var(--text-secondary);
 }
 
@@ -432,20 +659,24 @@ function startQuiz(mode) {
   background: none;
   border: none;
   cursor: pointer;
-  opacity: 0.6;
+  opacity: 0.5;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--text-muted);
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.15s;
 }
 
 .btn-clear:hover {
   opacity: 1;
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .no-results {
   text-align: center;
-  padding: 2rem;
+  padding: 2.5rem;
   color: var(--text-muted);
   font-size: 0.9rem;
   display: flex;
