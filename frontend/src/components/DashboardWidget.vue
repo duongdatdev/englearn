@@ -5,7 +5,7 @@
             <!-- Streak -->
             <div class="stat-item streak" :class="{ active: streak.current > 0 }">
                 <div class="stat-icon">
-                    <span class="fire-icon" :class="{ burning: streak.current > 0 }">🔥</span>
+                    <FeatherIcon type="zap" :size="24" :class="{ burning: streak.current > 0 }" />
                 </div>
                 <div class="stat-content">
                     <span class="stat-value">{{ streak.current }}</span>
@@ -59,7 +59,7 @@
 
         <!-- Motivation Message -->
         <div class="motivation" v-if="motivationMessage">
-            <span class="motivation-icon">{{ motivationIcon }}</span>
+            <FeatherIcon :type="motivationIcon" :size="20" class="motivation-icon" />
             <span class="motivation-text">{{ motivationMessage }}</span>
         </div>
     </div>
@@ -92,12 +92,12 @@ const reviewStats = ref({
 })
 
 const motivationMessages = [
-    { condition: (s, r) => r.dueToday === 0 && r.totalCards > 0, icon: '🎉', message: 'Tuyệt vời! Bạn đã hoàn thành ôn tập hôm nay!' },
-    { condition: (s, r) => s.current >= 7, icon: '⚡', message: (s) => `Chuỗi ${s.current} ngày! Đừng bỏ cuộc!` },
-    { condition: (s, r) => s.current >= 3, icon: '🔥', message: 'Giữ vững streak của bạn!' },
-    { condition: (s, r) => r.dueToday > 10, icon: '💪', message: 'Nhiều từ cần ôn - hãy bắt đầu ngay!' },
-    { condition: (s, r) => r.dueToday > 0, icon: '📚', message: 'Hãy dành vài phút ôn tập nhé!' },
-    { condition: () => true, icon: '🌟', message: 'Học từ mới để mở rộng vốn từ!' }
+    { condition: (s, r) => r.dueToday === 0 && r.totalCards > 0, icon: 'award', message: 'Tuyệt vời! Bạn đã hoàn thành ôn tập hôm nay!' },
+    { condition: (s, r) => s.current >= 7, icon: 'zap', message: (s) => `Chuỗi ${s.current} ngày! Đừng bỏ cuộc!` },
+    { condition: (s, r) => s.current >= 3, icon: 'trending-up', message: 'Giữ vững streak của bạn!' },
+    { condition: (s, r) => r.dueToday > 10, icon: 'target', message: 'Nhiều từ cần ôn - hãy bắt đầu ngay!' },
+    { condition: (s, r) => r.dueToday > 0, icon: 'book-open', message: 'Hãy dành vài phút ôn tập nhé!' },
+    { condition: () => true, icon: 'star', message: 'Học từ mới để mở rộng vốn từ!' }
 ]
 
 const motivationMessage = computed(() => {
@@ -119,7 +119,7 @@ const motivationIcon = computed(() => {
             return msg.icon
         }
     }
-    return '🌟'
+    return 'star'
 })
 
 function formatXP(xp) {
@@ -208,14 +208,8 @@ defineExpose({ refresh: loadData })
     background: var(--bg-secondary);
 }
 
-.fire-icon {
-    font-size: 1.5rem;
-    filter: grayscale(100%);
-    transition: filter 0.3s;
-}
-
-.fire-icon.burning {
-    filter: none;
+.burning {
+    color: #ff6b35;
     animation: pulse-fire 1.5s ease-in-out infinite;
 }
 
@@ -322,7 +316,8 @@ defineExpose({ refresh: loadData })
 }
 
 .motivation-icon {
-    font-size: 1.25rem;
+    color: var(--mint-500);
+    flex-shrink: 0;
 }
 
 .motivation-text {

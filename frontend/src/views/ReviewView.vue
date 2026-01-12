@@ -32,7 +32,7 @@
 
         <!-- Empty State -->
         <div class="empty-state card" v-if="cards.length === 0 && !loading">
-            <div class="empty-icon">🎉</div>
+            <div class="empty-icon"><FeatherIcon type="gift" :size="48" /></div>
             <h2>Không có từ nào cần ôn tập!</h2>
             <p>Bạn đã hoàn thành tất cả các từ cần ôn tập hôm nay. Hãy học thêm từ mới nhé!</p>
             <button class="btn btn-primary" @click="goBack">
@@ -49,9 +49,9 @@
         <!-- Completion Screen -->
         <div class="completion-screen card" v-if="isComplete">
             <div class="completion-icon">
-                <span v-if="accuracy >= 80">🏆</span>
-                <span v-else-if="accuracy >= 50">👍</span>
-                <span v-else>💪</span>
+                <FeatherIcon v-if="accuracy >= 80" type="award" :size="48" />
+                <FeatherIcon v-else-if="accuracy >= 50" type="thumbs-up" :size="48" />
+                <FeatherIcon v-else type="zap" :size="48" />
             </div>
 
             <h2 class="completion-title">Hoàn thành ôn tập!</h2>
@@ -76,10 +76,10 @@
             </div>
 
             <div class="completion-message">
-                <p v-if="accuracy === 100">🎯 Tuyệt vời! Bạn nhớ hết tất cả các từ!</p>
-                <p v-else-if="accuracy >= 80">👏 Rất tốt! Tiếp tục phát huy nhé!</p>
-                <p v-else-if="accuracy >= 50">📚 Tiếp tục ôn tập để cải thiện!</p>
-                <p v-else>💡 Đừng nản! Luyện tập nhiều hơn sẽ tiến bộ!</p>
+                <p v-if="accuracy === 100"><FeatherIcon type="target" :size="16" /> Tuyệt vời! Bạn nhớ hết tất cả các từ!</p>
+                <p v-else-if="accuracy >= 80"><FeatherIcon type="star" :size="16" /> Rất tốt! Tiếp tục phát huy nhé!</p>
+                <p v-else-if="accuracy >= 50"><FeatherIcon type="book" :size="16" /> Tiếp tục ôn tập để cải thiện!</p>
+                <p v-else><FeatherIcon type="sun" :size="16" /> Đừng nản! Luyện tập nhiều hơn sẽ tiến bộ!</p>
             </div>
 
             <div class="completion-actions">
@@ -130,7 +130,7 @@ const showCelebration = ref(false)
 const celebrationType = ref('streak')
 const celebrationTitle = ref('')
 const celebrationMessage = ref('')
-const celebrationIcon = ref('🎉')
+const celebrationIcon = ref('gift')
 const celebrationXP = ref(0)
 
 const currentCard = computed(() => cards.value[currentIndex.value] || {})
@@ -221,7 +221,7 @@ function completeReview() {
 
 function showStreakCelebration(days) {
     celebrationType.value = 'streak'
-    celebrationIcon.value = '🔥'
+    celebrationIcon.value = 'zap'
     celebrationTitle.value = `${days} ngày liên tiếp!`
     celebrationMessage.value = 'Bạn đang giữ streak rất tốt! Tiếp tục phát huy nhé!'
     celebrationXP.value = XP_REWARDS.STREAK_BONUS * days
@@ -230,7 +230,7 @@ function showStreakCelebration(days) {
 
 function showLevelUpCelebration(level) {
     celebrationType.value = 'level'
-    celebrationIcon.value = '⭐'
+    celebrationIcon.value = 'star'
     celebrationTitle.value = `Level ${level}!`
     celebrationMessage.value = 'Chúc mừng bạn đã lên level mới!'
     celebrationXP.value = 0

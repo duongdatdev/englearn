@@ -11,7 +11,7 @@
                     <!-- Content -->
                     <div class="celebration-content">
                         <div class="celebration-icon" :class="animationClass">
-                            {{ icon }}
+                            <FeatherIcon :type="icon" :size="48" />
                         </div>
 
                         <h2 class="celebration-title">{{ title }}</h2>
@@ -55,7 +55,7 @@ const props = defineProps({
     },
     icon: {
         type: String,
-        default: '🎉'
+        default: 'gift'
     },
     xpReward: {
         type: Number,
@@ -69,7 +69,6 @@ import { useSoundEffects } from '../composables/useSoundEffects.js'
 const { playLevelUp } = useSoundEffects()
 
 // Watch for show changes to play sound
-import { watch } from 'vue'
 watch(() => props.show, (newVal) => {
     if (newVal) {
         playLevelUp()

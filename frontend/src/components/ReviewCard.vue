@@ -44,19 +44,19 @@
         <!-- Rating Buttons (show after flip) -->
         <div class="rating-buttons" v-if="isFlipped && !rated">
             <button class="rating-btn forgot" @click="rate(0)">
-                <span class="rating-icon">😕</span>
+                <span class="rating-icon"><FeatherIcon type="frown" :size="24" /></span>
                 <span class="rating-label">Quên</span>
             </button>
             <button class="rating-btn hard" @click="rate(3)">
-                <span class="rating-icon">🤔</span>
+                <span class="rating-icon"><FeatherIcon type="help-circle" :size="24" /></span>
                 <span class="rating-label">Khó</span>
             </button>
             <button class="rating-btn good" @click="rate(4)">
-                <span class="rating-icon">😊</span>
+                <span class="rating-icon"><FeatherIcon type="smile" :size="24" /></span>
                 <span class="rating-label">Nhớ</span>
             </button>
             <button class="rating-btn easy" @click="rate(5)">
-                <span class="rating-icon">🎯</span>
+                <span class="rating-icon"><FeatherIcon type="target" :size="24" /></span>
                 <span class="rating-label">Dễ</span>
             </button>
         </div>

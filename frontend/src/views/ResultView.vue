@@ -2,7 +2,7 @@
   <div class="result-view animate-fadeIn">
     <div class="result-card card">
       <div class="result-header">
-        <span class="result-icon">🎉</span>
+        <span class="result-icon"><FeatherIcon type="gift" :size="48" /></span>
         <h1>Hoàn thành!</h1>
       </div>
       
@@ -20,6 +20,7 @@
 </template>
 
 <script setup>
+import FeatherIcon from '../components/FeatherIcon.vue'
 </script>
 
 <style scoped>

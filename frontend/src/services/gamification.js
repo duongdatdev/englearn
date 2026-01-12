@@ -25,70 +25,70 @@ const ACHIEVEMENTS = {
     id: 'first_word',
     name: 'Khởi đầu',
     description: 'Học từ vựng đầu tiên',
-    icon: '🌱',
+    icon: 'sun',
     condition: (stats) => stats.totalWordsLearned >= 1
   },
   ten_words: {
     id: 'ten_words',
     name: 'Tiến bộ',
     description: 'Học 10 từ vựng',
-    icon: '📚',
+    icon: 'book',
     condition: (stats) => stats.totalWordsLearned >= 10
   },
   fifty_words: {
     id: 'fifty_words',
     name: 'Chăm chỉ',
     description: 'Học 50 từ vựng',
-    icon: '🎯',
+    icon: 'target',
     condition: (stats) => stats.totalWordsLearned >= 50
   },
   hundred_words: {
     id: 'hundred_words',
     name: 'Học giả',
     description: 'Học 100 từ vựng',
-    icon: '🏆',
+    icon: 'award',
     condition: (stats) => stats.totalWordsLearned >= 100
   },
   three_day_streak: {
     id: 'three_day_streak',
     name: 'Kiên trì',
     description: 'Đạt streak 3 ngày',
-    icon: '🔥',
+    icon: 'zap',
     condition: (stats) => stats.maxStreak >= 3
   },
   seven_day_streak: {
     id: 'seven_day_streak',
     name: 'Tuần hoàn hảo',
     description: 'Đạt streak 7 ngày',
-    icon: '⚡',
+    icon: 'activity',
     condition: (stats) => stats.maxStreak >= 7
   },
   thirty_day_streak: {
     id: 'thirty_day_streak',
     name: 'Bậc thầy',
     description: 'Đạt streak 30 ngày',
-    icon: '👑',
+    icon: 'award',
     condition: (stats) => stats.maxStreak >= 30
   },
   level_5: {
     id: 'level_5',
     name: 'Newcomer',
     description: 'Đạt Level 5',
-    icon: '⭐',
+    icon: 'star',
     condition: (stats) => stats.level >= 5
   },
   level_10: {
     id: 'level_10',
     name: 'Explorer',
     description: 'Đạt Level 10',
-    icon: '🌟',
+    icon: 'star',
     condition: (stats) => stats.level >= 10
   },
   perfect_review: {
     id: 'perfect_review',
     name: 'Hoàn hảo',
     description: 'Hoàn thành ôn tập không sai',
-    icon: '💯',
+    icon: 'check-circle',
     condition: (stats) => stats.perfectReviews >= 1
   }
 }
