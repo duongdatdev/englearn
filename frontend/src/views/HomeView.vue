@@ -5,6 +5,11 @@
       <p class="hero-subtitle">Flash Cards, Quiz và nhiều hơn nữa</p>
     </section>
 
+    <!-- Dashboard Widget -->
+    <section class="dashboard-section">
+      <DashboardWidget ref="dashboardRef" />
+    </section>
+
     <section class="books-section">
       <h2 class="section-title">
         <FeatherIcon type="book" :size="24" /> Sách Từ Vựng
@@ -34,12 +39,14 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import BookCard from '../components/BookCard.vue'
 import FeatherIcon from '../components/FeatherIcon.vue'
+import DashboardWidget from '../components/DashboardWidget.vue'
 import { getAllBooks, getTopicsByBookId } from '../db/database.js'
 
 const router = useRouter()
 const books = ref([])
 const topicCounts = ref({})
 const loading = ref(true)
+const dashboardRef = ref(null)
 
 onMounted(async () => {
   try {

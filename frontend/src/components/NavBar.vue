@@ -11,10 +11,15 @@
           <FeatherIcon type="home" :size="18" class="nav-icon" />
           <span>Trang chủ</span>
         </router-link>
+        <router-link to="/review" class="nav-link">
+          <FeatherIcon type="rotate-cw" :size="18" class="nav-icon" />
+          <span>Ôn tập</span>
+        </router-link>
         <router-link to="/admin" class="nav-link">
           <FeatherIcon type="settings" :size="18" class="nav-icon" />
           <span>Quản lý</span>
         </router-link>
+        <NotificationDropdown />
         <ThemeToggle />
       </div>
     </div>
@@ -24,6 +29,7 @@
 <script setup>
 import ThemeToggle from './ThemeToggle.vue'
 import FeatherIcon from './FeatherIcon.vue'
+import NotificationDropdown from './NotificationDropdown.vue'
 </script>
 
 <style scoped>

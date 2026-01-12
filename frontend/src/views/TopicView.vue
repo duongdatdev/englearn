@@ -19,27 +19,44 @@
       <h2 class="section-title">Chọn chế độ</h2>
 
       <div class="mode-categories">
-        <!-- Primary: Learn Mode -->
+        <!-- Primary Modes: Learn & SRS -->
         <div class="mode-category">
           <span class="category-label">
-            <FeatherIcon type="book-open" :size="14" /> Học mới
+            <FeatherIcon type="star" :size="14" /> Chế độ chính
           </span>
-          <div class="mode-card mode-card-primary card card-clickable" @click="startLearn">
-            <span class="mode-icon primary">
-              <FeatherIcon type="book-open" :size="32" />
-            </span>
-            <div class="mode-info">
-              <h3 class="mode-name">Học từ mới</h3>
-              <p class="mode-desc">Học từ vựng qua 3 bước: Xem → Nghe → Kiểm tra</p>
+          
+          <div class="primary-grid">
+            <!-- Learn Mode -->
+            <div class="mode-card mode-card-primary card card-clickable" @click="startLearn">
+              <span class="mode-icon primary">
+                <FeatherIcon type="book-open" :size="32" />
+              </span>
+              <div class="mode-info">
+                <h3 class="mode-name">Học từ mới</h3>
+                <p class="mode-desc">Phương pháp 3 bước: Xem - Nghe - Kiểm tra</p>
+              </div>
+              <span class="mode-badge new">Mới</span>
             </div>
-            <span class="mode-badge new">Mới</span>
+
+            <!-- SRS Review Mode -->
+            <div class="mode-card mode-card-srs card card-clickable" @click="startSRSReview"
+              :class="{ 'has-due': topicProgress.dueToday > 0 }">
+              <span class="mode-icon srs">
+                <FeatherIcon type="clock" :size="32" />
+                <span class="due-badge" v-if="topicProgress.dueToday > 0">{{ topicProgress.dueToday }}</span>
+              </span>
+              <div class="mode-info">
+                <h3 class="mode-name">Ôn tập SRS</h3>
+                <p class="mode-desc">Học nhắc lại thông minh (Spaced Repetition)</p>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Secondary: Review Modes -->
+        <!-- Secondary: Practice Modes -->
         <div class="mode-category">
           <span class="category-label">
-            <FeatherIcon type="refresh-cw" :size="14" /> Ôn tập
+            <FeatherIcon type="tool" :size="14" /> Luyện tập thêm
           </span>
           <div class="mode-grid">
             <div class="mode-card card card-clickable" @click="startFlashCard">
@@ -143,6 +160,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { getTopicById, getWordsByTopicId, getBookById } from '../db/database.js'
 import { useAudio } from '../composables/useAudio.js'
 import { api } from '../services/api.js'
+import { getTopicProgress } from '../services/srs.js'
 import FeatherIcon from '../components/FeatherIcon.vue'
 
 const route = useRoute()
@@ -154,6 +172,7 @@ const searchQuery = ref('')
 const searching = ref(false)
 const aiSearchResult = ref('')
 const aiMatchedWords = ref([])
+const topicProgress = ref({ total: 0, dueToday: 0, mastered: 0, learning: 0 })
 const { playAudio } = useAudio()
 
 const filteredWords = computed(() => {
@@ -188,6 +207,9 @@ onMounted(async () => {
       const book = await getBookById(topic.value.bookId)
       bookName.value = book?.name || ''
     }
+
+    // Load SRS progress for this topic
+    topicProgress.value = getTopicProgress(topicId)
   } catch (error) {
     console.error('Error loading topic:', error)
   }
@@ -236,6 +258,10 @@ function startQuiz(mode) {
 
 function startParagraphPractice() {
   router.push(`/paragraph/${topic.value.id}`)
+}
+
+function startSRSReview() {
+  router.push(`/review/${topic.value.id}`)
 }
 </script>
 
@@ -315,16 +341,29 @@ function startParagraphPractice() {
   color: var(--text-muted);
 }
 
-/* Primary Learn Card */
-.mode-card-primary {
+/* Primary Grid Mode */
+.primary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+/* Common Primary Card Styles */
+.mode-card-primary, .mode-card-srs {
   display: flex;
   align-items: center;
   gap: 1rem;
   padding: 1.25rem 1.5rem;
-  background: linear-gradient(135deg, var(--mint-50), rgba(16, 185, 129, 0.08));
-  border: 2px solid var(--mint-200);
+  border: 2px solid transparent;
   position: relative;
   overflow: hidden;
+  text-align: left;
+}
+
+/* Learn Card Specifics */
+.mode-card-primary {
+  background: linear-gradient(135deg, var(--mint-50), rgba(16, 185, 129, 0.08));
+  border-color: var(--mint-200);
 }
 
 .mode-card-primary:hover {
@@ -438,6 +477,45 @@ function startParagraphPractice() {
   color: #8b5cf6;
 }
 
+/* SRS Mode Card */
+.mode-card-srs {
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.05), rgba(247, 147, 30, 0.08));
+  border: 1px solid rgba(255, 107, 53, 0.2);
+  position: relative;
+}
+
+.mode-card-srs:hover {
+  border-color: rgba(255, 107, 53, 0.4);
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(247, 147, 30, 0.12));
+}
+
+.mode-card-srs.has-due {
+  border-color: rgba(255, 107, 53, 0.4);
+}
+
+.mode-icon.srs {
+  color: #ff6b35;
+  position: relative;
+}
+
+.due-badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(255, 107, 53, 0.4);
+}
+
 .word-list {
   max-height: 450px;
   overflow-y: auto;
@@ -539,7 +617,17 @@ function startParagraphPractice() {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .mode-card-primary {
+  .primary-grid {
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .primary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mode-card-primary, .mode-card-srs {
     flex-direction: column;
     text-align: center;
   }
@@ -548,7 +636,7 @@ function startParagraphPractice() {
     text-align: center;
   }
 
-  .mode-badge {
+  .mode-badge, .due-badge {
     position: static;
     margin-top: 0.5rem;
   }

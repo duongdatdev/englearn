@@ -186,6 +186,8 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getWordsByTopicId, getTopicById } from '../db/database.js'
 import { api } from '../services/api.js'
+import { initializeTopicCards } from '../services/srs.js'
+import { recordWordLearned, updateStreak, checkAchievements } from '../services/gamification.js'
 import LearnCard from '../components/LearnCard.vue'
 import FeatherIcon from '../components/FeatherIcon.vue'
 
@@ -305,6 +307,19 @@ function handleRetry(word) {
 function moveToNext() {
     if (learnedWords.value.size >= words.value.length) {
         isComplete.value = true
+        // Add all words to SRS queue
+        const topicId = route.params.topicId
+        const wordsWithTopic = words.value.map(w => ({ ...w, topicId }))
+        initializeTopicCards(wordsWithTopic, topicId)
+
+        // Award XP for each word learned
+        words.value.forEach(() => recordWordLearned())
+
+        // Update streak
+        updateStreak()
+
+        // Check for new achievements
+        checkAchievements()
     } else {
         let nextIndex = currentIndex.value
         for (let i = 0; i < words.value.length; i++) {
