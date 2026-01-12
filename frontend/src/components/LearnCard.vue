@@ -130,31 +130,44 @@
 
                 <!-- Type Answer -->
                 <div class="quiz-input" v-else>
-                    <input type="text" v-model="typedAnswer" class="input input-lg" :placeholder="inputPlaceholder"
-                        @keyup.enter="checkTypedAnswer" :disabled="showResult" ref="answerInput" />
+                    <input type="text" v-model="typedAnswer" class="input input-lg" :class="{ 'input-error': showWrongAttempt }"
+                        :placeholder="inputPlaceholder"
+                        @keyup.enter="checkTypedAnswer" :disabled="isCorrect" ref="answerInput" />
                     <button class="btn btn-primary" @click="checkTypedAnswer"
-                        :disabled="!typedAnswer.trim() || showResult">
+                        :disabled="!typedAnswer.trim() || isCorrect">
                         Kiểm tra
                     </button>
                 </div>
 
-                <!-- Result -->
-                <div class="quiz-result" v-if="showResult" :class="{ correct: isCorrect, wrong: !isCorrect }">
-                    <FeatherIcon :type="isCorrect ? 'check-circle' : 'x-circle'" :size="24" />
+                <!-- Wrong Attempt Message -->
+                <div class="quiz-result wrong" v-if="showWrongAttempt && !isCorrect">
+                    <FeatherIcon type="x-circle" :size="24" />
                     <div class="result-content">
-                        <p class="result-title">{{ isCorrect ? 'Chính xác!' : 'Chưa đúng!' }}</p>
-                        <p class="result-answer" v-if="!isCorrect">
+                        <p class="result-title">Chưa đúng! Hãy thử lại.</p>
+                        <p class="result-hint" v-if="attemptCount >= 2">
+                            <FeatherIcon type="info" :size="14" />
+                            Gợi ý: Bắt đầu bằng chữ "<strong>{{ correctAnswer.charAt(0).toUpperCase() }}</strong>"
+                        </p>
+                        <p class="result-answer" v-if="attemptCount >= 3">
                             Đáp án đúng: <strong>{{ correctAnswer }}</strong>
                         </p>
+                    </div>
+                </div>
+                
+                <!-- Correct Result -->
+                <div class="quiz-result correct" v-if="isCorrect">
+                    <FeatherIcon type="check-circle" :size="24" />
+                    <div class="result-content">
+                        <p class="result-title">Chính xác!</p>
                     </div>
                 </div>
             </div>
 
             <div class="step-action">
-                <button class="btn btn-ghost" @click="goToStep(2)" v-if="!showResult">
+                <button class="btn btn-ghost" @click="goToStep(2)" v-if="!isCorrect">
                     <FeatherIcon type="arrow-left" :size="16" /> Quay lại
                 </button>
-                <button class="btn btn-primary btn-lg" @click="goToSentenceStep" v-if="showResult">
+                <button class="btn btn-primary btn-lg" @click="goToSentenceStep" v-if="isCorrect">
                     <FeatherIcon type="edit-3" :size="18" />
                     Tiếp: Đặt câu
                 </button>
@@ -282,6 +295,8 @@ const typedAnswer = ref('')
 const showResult = ref(false)
 const isCorrect = ref(false)
 const correctAnswerIndex = ref(0)
+const showWrongAttempt = ref(false)
+const attemptCount = ref(0)
 const answerInput = ref(null)
 
 // Step 4: Sentence grading state
@@ -352,6 +367,8 @@ function startQuiz() {
     typedAnswer.value = ''
     showResult.value = false
     isCorrect.value = false
+    showWrongAttempt.value = false
+    attemptCount.value = 0
 
     // Randomly choose quiz type
     quizType.value = Math.random() > 0.5 ? 'choice' : 'type'
@@ -394,15 +411,26 @@ function selectAnswer(index) {
 }
 
 function checkTypedAnswer() {
-    if (!typedAnswer.value.trim() || showResult.value) return
+    if (!typedAnswer.value.trim() || isCorrect.value) return
 
-    showResult.value = true
-    isCorrect.value = typedAnswer.value.trim().toLowerCase() === props.word.english.toLowerCase()
+    const userAnswer = typedAnswer.value.trim().toLowerCase()
+    const correctAnswerLower = props.word.english.toLowerCase()
     
-    if (isCorrect.value) {
+    if (userAnswer === correctAnswerLower) {
+        isCorrect.value = true
+        showResult.value = true
+        showWrongAttempt.value = false
         playSuccess()
     } else {
+        attemptCount.value++
+        showWrongAttempt.value = true
         playError()
+        
+        // Clear input and focus for retry
+        typedAnswer.value = ''
+        nextTick(() => {
+            answerInput.value?.focus()
+        })
     }
 }
 
@@ -486,6 +514,8 @@ function reset() {
     typedAnswer.value = ''
     showResult.value = false
     isCorrect.value = false
+    showWrongAttempt.value = false
+    attemptCount.value = 0
     // Reset Step 4 state
     userSentence.value = ''
     showGradeResult.value = false
@@ -951,6 +981,27 @@ defineExpose({ reset })
 
 .result-answer strong {
     font-weight: 600;
+}
+
+.result-hint {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.85rem;
+    margin: 0.5rem 0 0;
+    color: var(--text-secondary);
+}
+
+.input-error {
+    border-color: #ef4444 !important;
+    animation: shake 0.4s ease;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    50% { transform: translateX(8px); }
+    75% { transform: translateX(-8px); }
 }
 
 /* Step 4: Sentence Writing */
