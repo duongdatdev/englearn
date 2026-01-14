@@ -175,5 +175,24 @@ export const api = {
       body: JSON.stringify({ word, vietnamese, userSentence })
     })
     return response.json()
+  },
+
+  // Word Type Learning
+  async getWordTypeLesson(words = []) {
+    const response = await fetch(`${API_URL}/ai/word-type-lesson`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ words })
+    })
+    return response.json()
+  },
+
+  async getWordTypeQuiz(words = [], questionCount = 5) {
+    const response = await fetch(`${API_URL}/ai/word-type-quiz`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ words, level: String(questionCount) })
+    })
+    return response.json()
   }
 }

@@ -5,6 +5,25 @@
       <p class="hero-subtitle">Flash Cards, Quiz và nhiều hơn nữa</p>
     </section>
 
+    <!-- AI Practice Section -->
+    <section class="ai-practice-section">
+      <h2 class="section-title">
+        <FeatherIcon type="cpu" :size="24" /> Luyện tập với AI
+      </h2>
+      <div class="practice-grid">
+        <div class="practice-card card card-clickable" @click="goToWordTypes">
+          <div class="practice-icon" style="background: linear-gradient(135deg, #8B5CF6, #7C3AED);">
+            <FeatherIcon type="git-branch" :size="32" />
+          </div>
+          <div class="practice-info">
+            <h3>Phân loại từ</h3>
+            <p>Học nhận biết 8 loại từ cơ bản (Noun, Verb, Adj...) với quiz AI</p>
+          </div>
+          <FeatherIcon type="chevron-right" :size="20" class="practice-arrow" />
+        </div>
+      </div>
+    </section>
+
     <!-- Dashboard Widget -->
     <section class="dashboard-section">
       <DashboardWidget ref="dashboardRef" />
@@ -68,6 +87,10 @@ onMounted(async () => {
 function goToBook(id) {
   router.push(`/book/${id}`)
 }
+
+function goToWordTypes() {
+  router.push('/word-types')
+}
 </script>
 
 <style scoped>
@@ -128,5 +151,60 @@ function goToBook(id) {
   .hero-subtitle {
     font-size: 1rem;
   }
+}
+
+/* AI Practice Section */
+.ai-practice-section {
+  margin-bottom: 2.5rem;
+}
+
+.practice-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.practice-card {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(124, 58, 237, 0.08));
+}
+
+.practice-card:hover {
+  border-color: rgba(139, 92, 246, 0.4);
+  transform: translateY(-2px);
+}
+
+.practice-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.practice-info {
+  flex: 1;
+}
+
+.practice-info h3 {
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.practice-info p {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.practice-arrow {
+  color: var(--text-muted);
 }
 </style>

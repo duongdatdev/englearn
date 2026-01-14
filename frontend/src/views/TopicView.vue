@@ -105,6 +105,15 @@
               <h3 class="mode-name">Điền đoạn văn</h3>
               <p class="mode-desc">AI tạo đoạn văn</p>
             </div>
+
+            <div class="mode-card mode-card-ai card card-clickable" @click="startWordTypePractice">
+              <span class="mode-icon ai">
+                <FeatherIcon type="git-branch" :size="22" />
+                <FeatherIcon type="cpu" :size="14" />
+              </span>
+              <h3 class="mode-name">Phân loại từ</h3>
+              <p class="mode-desc">Học loại từ + AI</p>
+            </div>
           </div>
         </div>
       </div>
@@ -262,6 +271,10 @@ function startParagraphPractice() {
 
 function startSRSReview() {
   router.push(`/review/${topic.value.id}`)
+}
+
+function startWordTypePractice() {
+  router.push(`/word-types/${topic.value.id}`)
 }
 </script>
 

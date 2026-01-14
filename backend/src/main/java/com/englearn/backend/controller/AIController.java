@@ -180,4 +180,52 @@ public class AIController {
         );
         return ResponseEntity.ok(response);
     }
+
+    /**
+     * Generate word type lesson - teaching content about parts of speech
+     */
+    @PostMapping("/word-type-lesson")
+    public ResponseEntity<AIResponse> getWordTypeLesson(@RequestBody AIRequest request) {
+        // Get words - either from request or from repository
+        List<String> wordList;
+        if (request.getWords() != null && !request.getWords().isEmpty()) {
+            wordList = request.getWords().stream()
+                .map(w -> w.get("english"))
+                .collect(Collectors.toList());
+        } else {
+            // Get some words from database
+            wordList = wordRepository.findAll().stream()
+                .limit(20)
+                .map(word -> word.getEnglish())
+                .collect(Collectors.toList());
+        }
+        
+        AIResponse response = geminiService.generateWordTypeLesson(wordList);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Generate word type quiz - context-based questions about parts of speech
+     */
+    @PostMapping("/word-type-quiz")
+    public ResponseEntity<AIResponse> getWordTypeQuiz(@RequestBody AIRequest request) {
+        // Get words - either from request or from repository
+        List<String> wordList;
+        if (request.getWords() != null && !request.getWords().isEmpty()) {
+            wordList = request.getWords().stream()
+                .map(w -> w.get("english"))
+                .collect(Collectors.toList());
+        } else {
+            wordList = wordRepository.findAll().stream()
+                .limit(15)
+                .map(word -> word.getEnglish())
+                .collect(Collectors.toList());
+        }
+        
+        int questionCount = request.getLevel() != null ? 
+            Integer.parseInt(request.getLevel()) : 5;
+        
+        AIResponse response = geminiService.generateWordTypeQuiz(wordList, questionCount);
+        return ResponseEntity.ok(response);
+    }
 }

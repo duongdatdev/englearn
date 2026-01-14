@@ -55,6 +55,11 @@ const routes = [
     path: '/review/:topicId',
     name: 'ReviewTopic',
     component: () => import('../views/ReviewView.vue')
+  },
+  {
+    path: '/word-types/:topicId?',
+    name: 'WordTypes',
+    component: () => import('../views/WordTypePracticeView.vue')
   }
 ]
 

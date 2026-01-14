@@ -280,6 +280,123 @@ public class GeminiService {
         return callGeminiAndParse(prompt, "paragraph-blanks");
     }
 
+    /**
+     * Generate word type lesson - teaching content about parts of speech with patterns
+     */
+    public AIResponse generateWordTypeLesson(List<String> words) {
+        String wordList = String.join(", ", words.stream().limit(20).toList());
+        
+        String prompt = String.format("""
+            Bạn là giáo viên tiếng Anh. Hãy tạo bài học CHI TIẾT về 8 loại từ (Parts of Speech) trong tiếng Anh.
+            
+            Danh sách từ vựng của học viên: [%s]
+            
+            Yêu cầu QUAN TRỌNG:
+            1. Giới thiệu 8 loại từ: Noun, Verb, Adjective, Adverb, Pronoun, Preposition, Conjunction, Interjection
+            2. Mỗi loại PHẢI có:
+               - Tên tiếng Anh và tiếng Việt
+               - Định nghĩa ngắn gọn
+               - DANH SÁCH CÁC HẬU TỐ (suffixes) phổ biến để nhận biết qua mặt chữ
+               - Ví dụ từ có hậu tố đó
+               - Mẹo ghi nhớ/nhận biết
+            
+            Trả lời theo định dạng JSON:
+            {
+                "wordTypes": [
+                    {
+                        "type": "Noun",
+                        "nameVi": "Danh từ",
+                        "definition": "Từ chỉ người, vật, địa điểm, khái niệm",
+                        "suffixes": ["-tion", "-ment", "-ness", "-ity", "-er", "-or", "-ist", "-ism"],
+                        "suffixExamples": ["information", "development", "happiness", "ability", "teacher"],
+                        "examples": ["book", "company", "idea"],
+                        "tips": "Đa số từ kết thúc bằng -tion, -ment, -ness, -ity là danh từ",
+                        "color": "#3B82F6"
+                    },
+                    {
+                        "type": "Verb",
+                        "nameVi": "Động từ",
+                        "definition": "Từ chỉ hành động hoặc trạng thái",
+                        "suffixes": ["-ize", "-ify", "-ate", "-en"],
+                        "suffixExamples": ["organize", "simplify", "communicate", "strengthen"],
+                        "examples": ["run", "think", "become"],
+                        "tips": "Từ kết thúc bằng -ize, -ify, -ate thường là động từ",
+                        "color": "#10B981"
+                    },
+                    {
+                        "type": "Adjective",
+                        "nameVi": "Tính từ",
+                        "definition": "Từ mô tả tính chất của danh từ",
+                        "suffixes": ["-ful", "-less", "-ous", "-ive", "-able", "-ible", "-al", "-ic"],
+                        "suffixExamples": ["beautiful", "careless", "dangerous", "active", "comfortable"],
+                        "examples": ["fast", "important"],
+                        "tips": "Từ kết thúc bằng -ful, -less, -ous, -ive, -able thường là tính từ",
+                        "color": "#F59E0B"
+                    },
+                    {
+                        "type": "Adverb",
+                        "nameVi": "Trạng từ",
+                        "definition": "Từ bổ nghĩa cho động từ, tính từ hoặc trạng từ khác",
+                        "suffixes": ["-ly"],
+                        "suffixExamples": ["quickly", "carefully", "happily", "beautifully"],
+                        "examples": ["very", "always", "never"],
+                        "tips": "Hầu hết trạng từ kết thúc bằng -LY (thêm -ly vào tính từ)",
+                        "color": "#8B5CF6"
+                    }
+                ]
+            }
+            
+            Tạo đủ 8 loại từ với cùng cấu trúc như trên.
+            Màu sắc: Noun=#3B82F6, Verb=#10B981, Adjective=#F59E0B, Adverb=#8B5CF6, 
+            Pronoun=#EC4899, Preposition=#06B6D4, Conjunction=#F97316, Interjection=#EF4444
+            
+            Chỉ trả về JSON, không thêm text khác.
+            """, wordList);
+
+        return callGeminiAndParse(prompt, "word-type-lesson");
+    }
+
+    /**
+     * Generate word type quiz - context-based question about parts of speech
+     */
+    public AIResponse generateWordTypeQuiz(List<String> words, int questionCount) {
+        String wordList = String.join(", ", words.stream().limit(15).toList());
+        int count = Math.min(questionCount, 10);
+        
+        String prompt = String.format("""
+            Bạn là giáo viên tiếng Anh. Hãy tạo %d câu hỏi trắc nghiệm về loại từ (Parts of Speech).
+            
+            Danh sách từ vựng ưu tiên: [%s]
+            
+            Yêu cầu cho mỗi câu hỏi:
+            1. Tạo một câu tiếng Anh tự nhiên sử dụng một từ từ danh sách (hoặc từ phổ biến)
+            2. Từ mục tiêu được đánh dấu bằng **từ** trong câu
+            3. Đáp án đúng là loại từ của từ đó TRONG NGỮ CẢNH CỦA CÂU
+            4. Giải thích ngắn gọn tại sao đó là đáp án đúng
+            
+            Lưu ý: Một từ có thể là nhiều loại từ khác nhau tùy ngữ cảnh!
+            Ví dụ: "book" có thể là Noun (I read a book) hoặc Verb (I will book a flight)
+            
+            Trả lời theo định dạng JSON:
+            {
+                "questions": [
+                    {
+                        "sentence": "I need to **book** a flight for tomorrow.",
+                        "targetWord": "book",
+                        "options": ["Noun", "Verb", "Adjective", "Adverb"],
+                        "correctAnswer": "Verb",
+                        "explanation": "Trong câu này, 'book' là động từ với nghĩa 'đặt chỗ'. Nó đi sau 'to' (to book) và diễn tả hành động."
+                    }
+                ]
+            }
+            
+            Chỉ trả về JSON, không thêm text khác.
+            """, count, wordList);
+
+        return callGeminiAndParse(prompt, "word-type-quiz");
+    }
+
+
     private AIResponse callGeminiAndParse(String prompt, String type) {
         try {
             Map<String, Object> requestBody = Map.of(
@@ -411,6 +528,43 @@ public class GeminiService {
                     builder.feedback(jsonResponse.path("feedback").asText());
                     builder.correctedSentence(jsonResponse.path("correctedSentence").asText());
                     builder.tips(jsonResponse.path("tips").asText());
+                }
+                case "word-type-lesson" -> {
+                    // Parse wordTypes array
+                    List<Map<String, Object>> wordTypesList = new ArrayList<>();
+                    JsonNode typesNode = jsonResponse.path("wordTypes");
+                    if (typesNode.isArray()) {
+                        for (JsonNode typeNode : typesNode) {
+                            Map<String, Object> typeMap = new java.util.HashMap<>();
+                            typeMap.put("type", typeNode.path("type").asText());
+                            typeMap.put("nameVi", typeNode.path("nameVi").asText());
+                            typeMap.put("definition", typeNode.path("definition").asText());
+                            typeMap.put("suffixes", parseStringList(typeNode.path("suffixes")));
+                            typeMap.put("suffixExamples", parseStringList(typeNode.path("suffixExamples")));
+                            typeMap.put("examples", parseStringList(typeNode.path("examples")));
+                            typeMap.put("tips", typeNode.path("tips").asText());
+                            typeMap.put("color", typeNode.path("color").asText());
+                            wordTypesList.add(typeMap);
+                        }
+                    }
+                    builder.wordTypes(wordTypesList);
+                }
+                case "word-type-quiz" -> {
+                    // Parse questions array
+                    List<Map<String, Object>> questionsList = new ArrayList<>();
+                    JsonNode questionsNode = jsonResponse.path("questions");
+                    if (questionsNode.isArray()) {
+                        for (JsonNode qNode : questionsNode) {
+                            Map<String, Object> qMap = new java.util.HashMap<>();
+                            qMap.put("sentence", qNode.path("sentence").asText());
+                            qMap.put("targetWord", qNode.path("targetWord").asText());
+                            qMap.put("options", parseStringList(qNode.path("options")));
+                            qMap.put("correctAnswer", qNode.path("correctAnswer").asText());
+                            qMap.put("explanation", qNode.path("explanation").asText());
+                            questionsList.add(qMap);
+                        }
+                    }
+                    builder.questions(questionsList);
                 }
             }
             

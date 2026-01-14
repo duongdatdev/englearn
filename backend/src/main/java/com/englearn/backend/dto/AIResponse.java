@@ -45,4 +45,8 @@ public class AIResponse {
     private String feedback;
     private String correctedSentence;
     private String tips;
+    
+    // Word Type Learning
+    private List<Map<String, Object>> wordTypes;  // For lesson content
+    private List<Map<String, Object>> questions;  // For quiz questions
 }
