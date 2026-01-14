@@ -1,5 +1,11 @@
 const API_URL = 'http://localhost:8080/api'
 
+// Helper to get auth headers
+function getAuthHeaders() {
+  const token = localStorage.getItem('englearn_access_token')
+  return token ? { 'Authorization': `Bearer ${token}` } : {}
+}
+
 export const api = {
   async getBooks() {
     const response = await fetch(`${API_URL}/books`)
@@ -31,7 +37,7 @@ export const api = {
   async createBook(book) {
     const response = await fetch(`${API_URL}/books`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
       body: JSON.stringify(book)
     })
     return response.json()
@@ -40,7 +46,7 @@ export const api = {
   async createTopic(topic) {
     const response = await fetch(`${API_URL}/topics`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
       body: JSON.stringify(topic)
     })
     return response.json()
@@ -50,7 +56,7 @@ export const api = {
   async createWord(word) {
     const response = await fetch(`${API_URL}/words`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
       body: JSON.stringify(word)
     })
     return response.json()
@@ -59,40 +65,40 @@ export const api = {
   async updateBook(id, book) {
     const response = await fetch(`${API_URL}/books/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
       body: JSON.stringify(book)
     })
     return response.json()
   },
 
   async deleteBook(id) {
-    await fetch(`${API_URL}/books/${id}`, { method: 'DELETE' })
+    await fetch(`${API_URL}/books/${id}`, { method: 'DELETE', headers: getAuthHeaders() })
   },
 
   async updateTopic(id, topic) {
     const response = await fetch(`${API_URL}/topics/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
       body: JSON.stringify(topic)
     })
     return response.json()
   },
 
   async deleteTopic(id) {
-    await fetch(`${API_URL}/topics/${id}`, { method: 'DELETE' })
+    await fetch(`${API_URL}/topics/${id}`, { method: 'DELETE', headers: getAuthHeaders() })
   },
 
   async updateWord(id, word) {
     const response = await fetch(`${API_URL}/words/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
       body: JSON.stringify(word)
     })
     return response.json()
   },
 
   async deleteWord(id) {
-    await fetch(`${API_URL}/words/${id}`, { method: 'DELETE' })
+    await fetch(`${API_URL}/words/${id}`, { method: 'DELETE', headers: getAuthHeaders() })
   },
 
   async checkHealth() {

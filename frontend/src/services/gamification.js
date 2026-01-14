@@ -1,9 +1,21 @@
 /**
  * Gamification Service
  * Handles XP, levels, streaks, and achievements
+ * Data is isolated per user
  */
 
-const GAMIFICATION_STORAGE_KEY = 'englearn_gamification'
+/**
+ * Get storage key based on current user
+ */
+function getStorageKey() {
+  const userStr = localStorage.getItem('englearn_user')
+  const user = userStr ? JSON.parse(userStr) : null
+  if (user && user.id) {
+    return `englearn_gamification_${user.id}`
+  }
+  // Fallback for guest (shouldn't happen if routes are protected)
+  return 'englearn_gamification_guest'
+}
 
 // XP rewards
 export const XP_REWARDS = {
@@ -97,7 +109,7 @@ const ACHIEVEMENTS = {
  * Get gamification data
  */
 export function getGamificationData() {
-  const data = localStorage.getItem(GAMIFICATION_STORAGE_KEY)
+  const data = localStorage.getItem(getStorageKey())
   return data ? JSON.parse(data) : getDefaultData()
 }
 
@@ -125,7 +137,7 @@ function getDefaultData() {
  * Save gamification data
  */
 function saveData(data) {
-  localStorage.setItem(GAMIFICATION_STORAGE_KEY, JSON.stringify(data))
+  localStorage.setItem(getStorageKey(), JSON.stringify(data))
 }
 
 /**
@@ -393,8 +405,8 @@ function getYesterdayString() {
 }
 
 /**
- * Reset gamification data (for debugging)
+ * Reset gamification data for current user (for debugging)
  */
 export function resetGamification() {
-  localStorage.removeItem(GAMIFICATION_STORAGE_KEY)
+  localStorage.removeItem(getStorageKey())
 }

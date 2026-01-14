@@ -1,13 +1,25 @@
 /**
  * Spaced Repetition System (SRS) Service
  * Implements SM-2 algorithm for optimal review scheduling
+ * Data is isolated per user
  */
-
-const SRS_STORAGE_KEY = 'englearn_srs_progress'
 
 // SM-2 Algorithm Parameters
 const MIN_EASE_FACTOR = 1.3
 const DEFAULT_EASE_FACTOR = 2.5
+
+/**
+ * Get storage key based on current user
+ */
+function getStorageKey() {
+  const userStr = localStorage.getItem('englearn_user')
+  const user = userStr ? JSON.parse(userStr) : null
+  if (user && user.id) {
+    return `englearn_srs_progress_${user.id}`
+  }
+  // Fallback for guest (shouldn't happen if routes are protected)
+  return 'englearn_srs_progress_guest'
+}
 
 /**
  * Quality ratings for SM-2
@@ -27,7 +39,7 @@ export const QUALITY = {
  * Get all SRS progress data
  */
 export function getAllProgress() {
-  const data = localStorage.getItem(SRS_STORAGE_KEY)
+  const data = localStorage.getItem(getStorageKey())
   return data ? JSON.parse(data) : {}
 }
 
@@ -35,7 +47,7 @@ export function getAllProgress() {
  * Save SRS progress data
  */
 function saveProgress(data) {
-  localStorage.setItem(SRS_STORAGE_KEY, JSON.stringify(data))
+  localStorage.setItem(getStorageKey(), JSON.stringify(data))
 }
 
 /**
@@ -243,8 +255,8 @@ export function initializeTopicCards(words, topicId) {
 }
 
 /**
- * Clear all SRS data (for debugging)
+ * Clear all SRS data for current user (for debugging)
  */
 export function clearAllProgress() {
-  localStorage.removeItem(SRS_STORAGE_KEY)
+  localStorage.removeItem(getStorageKey())
 }
