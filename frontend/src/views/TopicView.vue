@@ -37,19 +37,6 @@
               </div>
               <span class="mode-badge new">Mới</span>
             </div>
-
-            <!-- SRS Review Mode -->
-            <div class="mode-card mode-card-srs card card-clickable" @click="startSRSReview"
-              :class="{ 'has-due': topicProgress.dueToday > 0 }">
-              <span class="mode-icon srs">
-                <FeatherIcon type="clock" :size="32" />
-                <span class="due-badge" v-if="topicProgress.dueToday > 0">{{ topicProgress.dueToday }}</span>
-              </span>
-              <div class="mode-info">
-                <h3 class="mode-name">Ôn tập SRS</h3>
-                <p class="mode-desc">Học nhắc lại thông minh (Spaced Repetition)</p>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -206,9 +193,6 @@ onMounted(async () => {
     if (topic.value && topic.value.book) {
       bookName.value = topic.value.book.name
     }
-
-    // Load SRS progress for this topic
-    topicProgress.value = getTopicProgress(topicId)
   } catch (error) {
     console.error('Error loading topic:', error)
   }
@@ -259,9 +243,7 @@ function startParagraphPractice() {
   router.push(`/paragraph/${topic.value.id}`)
 }
 
-function startSRSReview() {
-  router.push(`/review/${topic.value.id}`)
-}
+
 </script>
 
 <style scoped>

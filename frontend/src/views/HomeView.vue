@@ -21,6 +21,20 @@
           </div>
           <FeatherIcon type="chevron-right" :size="20" class="practice-arrow" />
         </div>
+
+        <div class="practice-card card card-clickable" @click="startSRSReview">
+          <div class="practice-icon srs-icon"
+            style="background: linear-gradient(135deg, #FF6B35, #F7931E); position: relative;">
+            <FeatherIcon type="clock" :size="32" />
+            <span class="notification-badge" v-if="reviewStats.dueToday > 0">{{ reviewStats.dueToday }}</span>
+          </div>
+          <div class="practice-info">
+            <h3>Ôn tập SRS</h3>
+            <p v-if="reviewStats.dueToday > 0">Bạn có {{ reviewStats.dueToday }} từ cần ôn tập ngay hôm nay</p>
+            <p v-else>Bạn đã hoàn thành bài ôn tập hôm nay!</p>
+          </div>
+          <FeatherIcon type="chevron-right" :size="20" class="practice-arrow" />
+        </div>
       </div>
     </section>
 
@@ -60,15 +74,21 @@ import BookCard from '../components/BookCard.vue'
 import FeatherIcon from '../components/FeatherIcon.vue'
 import DashboardWidget from '../components/DashboardWidget.vue'
 import { getAllBooks, getTopicsByBookId } from '../db/database.js'
+import { getReviewStats } from '../services/srs.js'
 
 const router = useRouter()
 const books = ref([])
 const topicCounts = ref({})
 const loading = ref(true)
 const dashboardRef = ref(null)
+const reviewStats = ref({ dueToday: 0 })
 
 onMounted(async () => {
   try {
+    // Load SRS stats
+    const stats = getReviewStats()
+    reviewStats.value = stats
+
     // Load books
     books.value = await getAllBooks()
 
@@ -90,6 +110,10 @@ function goToBook(id) {
 
 function goToWordTypes() {
   router.push('/word-types')
+}
+
+function startSRSReview() {
+  router.push('/review')
 }
 </script>
 
@@ -206,5 +230,23 @@ function goToWordTypes() {
 
 .practice-arrow {
   color: var(--text-muted);
+}
+
+.notification-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #ef4444;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: bold;
+  height: 24px;
+  width: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2px solid var(--white);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 </style>
