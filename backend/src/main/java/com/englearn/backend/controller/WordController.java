@@ -37,6 +37,11 @@ public class WordController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/random")
+    public List<Word> getRandomWords(@RequestParam(defaultValue = "10") int limit) {
+        return wordRepository.findRandomWords(limit);
+    }
+
     @PostMapping
     public ResponseEntity<Word> createWord(@RequestBody Word word) {
         if (word.getTopic() != null && word.getTopic().getId() != null) {

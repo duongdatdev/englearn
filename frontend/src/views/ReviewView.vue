@@ -27,12 +27,15 @@
 
         <!-- Review Card -->
         <div class="review-content" v-if="cards.length > 0 && !isComplete">
-            <ReviewCard ref="reviewCardRef" :word="currentCard" @rated="handleRated" @next="nextCard" />
+            <ReviewCard ref="reviewCardRef" :word="currentCard" :options="currentQuizOptions" @rated="handleRated"
+                @next="nextCard" />
         </div>
 
         <!-- Empty State -->
         <div class="empty-state card" v-if="cards.length === 0 && !loading">
-            <div class="empty-icon"><FeatherIcon type="gift" :size="48" /></div>
+            <div class="empty-icon">
+                <FeatherIcon type="gift" :size="48" />
+            </div>
             <h2>Không có từ nào cần ôn tập!</h2>
             <p>Bạn đã hoàn thành tất cả các từ cần ôn tập hôm nay. Hãy học thêm từ mới nhé!</p>
             <button class="btn btn-primary" @click="goBack">
@@ -76,10 +79,18 @@
             </div>
 
             <div class="completion-message">
-                <p v-if="accuracy === 100"><FeatherIcon type="target" :size="16" /> Tuyệt vời! Bạn nhớ hết tất cả các từ!</p>
-                <p v-else-if="accuracy >= 80"><FeatherIcon type="star" :size="16" /> Rất tốt! Tiếp tục phát huy nhé!</p>
-                <p v-else-if="accuracy >= 50"><FeatherIcon type="book" :size="16" /> Tiếp tục ôn tập để cải thiện!</p>
-                <p v-else><FeatherIcon type="sun" :size="16" /> Đừng nản! Luyện tập nhiều hơn sẽ tiến bộ!</p>
+                <p v-if="accuracy === 100">
+                    <FeatherIcon type="target" :size="16" /> Tuyệt vời! Bạn nhớ hết tất cả các từ!
+                </p>
+                <p v-else-if="accuracy >= 80">
+                    <FeatherIcon type="star" :size="16" /> Rất tốt! Tiếp tục phát huy nhé!
+                </p>
+                <p v-else-if="accuracy >= 50">
+                    <FeatherIcon type="book" :size="16" /> Tiếp tục ôn tập để cải thiện!
+                </p>
+                <p v-else>
+                    <FeatherIcon type="sun" :size="16" /> Đừng nản! Luyện tập nhiều hơn sẽ tiến bộ!
+                </p>
             </div>
 
             <div class="completion-actions">
@@ -113,6 +124,9 @@ import {
     XP_REWARDS
 } from '../services/gamification.js'
 
+import { api } from '../services/api.js'
+import feather from 'feather-icons'
+
 const router = useRouter()
 const route = useRoute()
 
@@ -122,6 +136,8 @@ const results = ref([])
 const loading = ref(true)
 const isComplete = ref(false)
 const xpEarned = ref(0)
+const distractorPool = ref([])
+const currentOptions = ref([])
 
 const reviewCardRef = ref(null)
 
@@ -137,6 +153,25 @@ const currentCard = computed(() => cards.value[currentIndex.value] || {})
 const progressPercent = computed(() =>
     cards.value.length > 0 ? ((currentIndex.value) / cards.value.length) * 100 : 0
 )
+
+const currentQuizOptions = computed(() => {
+    if (!currentCard.value || distractorPool.value.length === 0) return []
+
+    // Create options: correct answer + 3 random distractors
+    const correct = currentCard.value
+    const others = distractorPool.value
+        .filter(w => w.id !== correct.wordId && w.vietnamese !== correct.vietnamese)
+        .sort(() => 0.5 - Math.random())
+        .slice(0, 3)
+        .map(w => ({ text: w.vietnamese, isCorrect: false }))
+
+    const options = [
+        { text: correct.vietnamese, isCorrect: true },
+        ...others
+    ].sort(() => 0.5 - Math.random())
+
+    return options
+})
 
 const correctCount = computed(() =>
     results.value.filter(r => r.quality >= 3).length
@@ -159,6 +194,22 @@ onMounted(async () => {
 
     // Load cards for review
     cards.value = getCardsForReview(topicId)
+
+    // Load distractors for quiz mode
+    if (cards.value.length > 0) {
+        try {
+            // Fetch enough random words to have variety
+            const randomWords = await api.getRandomWords(20)
+            distractorPool.value = randomWords
+        } catch (e) {
+            console.error('Failed to load distractors:', e)
+            // Fallback: use other cards as distractors if API fails
+            distractorPool.value = cards.value.map(c => ({
+                id: c.wordId,
+                vietnamese: c.vietnamese
+            }))
+        }
+    }
 
     loading.value = false
 

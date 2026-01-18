@@ -53,6 +53,12 @@ export const api = {
   },
 
 
+  async getRandomWords(limit = 10) {
+    const response = await fetch(`${API_URL}/words/random?limit=${limit}`)
+    if (!response.ok) throw new Error('Failed to fetch random words')
+    return response.json()
+  },
+
   async createWord(word) {
     const response = await fetch(`${API_URL}/words`, {
       method: 'POST',

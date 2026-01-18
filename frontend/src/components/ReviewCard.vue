@@ -5,7 +5,7 @@
             <div class="card-front">
                 <div class="card-hint">
                     <FeatherIcon type="help-circle" :size="16" />
-                    <span>Bạn có nhớ nghĩa của từ này không?</span>
+                    <span>Chọn nghĩa đúng của từ này</span>
                 </div>
 
                 <div class="card-word">
@@ -16,9 +16,15 @@
                     <FeatherIcon type="volume-2" :size="20" />
                 </button>
 
-                <div class="card-tap-hint">
-                    <FeatherIcon type="rotate-cw" :size="14" />
-                    Click để xem nghĩa
+                <!-- Quiz Options -->
+                <div class="quiz-options" @click.stop>
+                    <button v-for="(opt, idx) in options" :key="idx" class="quiz-option" :class="{
+                        'correct': selectedOption === idx && opt.isCorrect,
+                        'wrong': selectedOption === idx && !opt.isCorrect,
+                        'disabled': selectedOption !== null
+                    }" @click="selectOption(idx, opt.isCorrect)">
+                        {{ opt.text }}
+                    </button>
                 </div>
             </div>
 
@@ -44,19 +50,27 @@
         <!-- Rating Buttons (show after flip) -->
         <div class="rating-buttons" v-if="isFlipped && !rated">
             <button class="rating-btn forgot" @click="rate(0)">
-                <span class="rating-icon"><FeatherIcon type="frown" :size="24" /></span>
+                <span class="rating-icon">
+                    <FeatherIcon type="frown" :size="24" />
+                </span>
                 <span class="rating-label">Quên</span>
             </button>
             <button class="rating-btn hard" @click="rate(3)">
-                <span class="rating-icon"><FeatherIcon type="help-circle" :size="24" /></span>
+                <span class="rating-icon">
+                    <FeatherIcon type="help-circle" :size="24" />
+                </span>
                 <span class="rating-label">Khó</span>
             </button>
-            <button class="rating-btn good" @click="rate(4)">
-                <span class="rating-icon"><FeatherIcon type="smile" :size="24" /></span>
+            <button class="rating-btn good" v-if="isCorrect" @click="rate(4)">
+                <span class="rating-icon">
+                    <FeatherIcon type="smile" :size="24" />
+                </span>
                 <span class="rating-label">Nhớ</span>
             </button>
-            <button class="rating-btn easy" @click="rate(5)">
-                <span class="rating-icon"><FeatherIcon type="target" :size="24" /></span>
+            <button class="rating-btn easy" v-if="isCorrect" @click="rate(5)">
+                <span class="rating-icon">
+                    <FeatherIcon type="target" :size="24" />
+                </span>
                 <span class="rating-label">Dễ</span>
             </button>
         </div>
@@ -81,6 +95,10 @@ const props = defineProps({
     word: {
         type: Object,
         required: true
+    },
+    options: {
+        type: Array,
+        default: () => []
     }
 })
 
@@ -89,12 +107,39 @@ const emit = defineEmits(['rated', 'next'])
 const isFlipped = ref(false)
 const rated = ref(false)
 const nextReviewInfo = ref('')
+const selectedOption = ref(null)
+const isCorrect = ref(false)
+
+function selectOption(index, correct) {
+    if (selectedOption.value !== null) return // Prevent multiple clicks
+
+    selectedOption.value = index
+    isCorrect.value = correct
+
+    if (correct) {
+        playSuccess()
+    } else {
+        playNotification()
+    }
+
+    // Auto flip after short delay
+    setTimeout(() => {
+        isFlipped.value = true
+        playFlip()
+
+        // If wrong, auto-rate as forgot/hard or restrict options?
+        // Let's force them to rate. But feedback visual is enough for now.
+    }, 1000)
+}
 
 function flip() {
+    // Disable manual flip, strictly quiz mode
+    /*
     if (!rated.value) {
         isFlipped.value = !isFlipped.value
         playFlip()
     }
+    */
 }
 
 function rate(quality) {
@@ -115,7 +160,7 @@ function rate(quality) {
     }
 
     emit('rated', { wordId: props.word.wordId, quality, result })
-    
+
     // Play sound based on rating
     if (quality >= 4) {
         playSuccess()
@@ -144,6 +189,8 @@ function reset() {
     isFlipped.value = false
     rated.value = false
     nextReviewInfo.value = ''
+    selectedOption.value = null
+    isCorrect.value = false
 }
 
 defineExpose({ reset })
@@ -378,10 +425,6 @@ defineExpose({ reset })
         font-size: 2rem;
     }
 
-    .rating-buttons {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
     .rating-btn {
         padding: 0.75rem;
     }
@@ -390,4 +433,49 @@ defineExpose({ reset })
         font-size: 1.5rem;
     }
 }
+
+/* Quiz Styles */
+.quiz-options {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.quiz-option {
+    padding: 0.875rem;
+    background: var(--bg-secondary);
+    border: 2px solid transparent;
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.quiz-option:hover:not(.disabled) {
+    border-color: var(--mint-400);
+    background: rgba(38, 166, 154, 0.05);
+}
+
+.quiz-option.correct {
+    background: #4caf50;
+    color: white;
+    border-color: #4caf50;
+}
+
+.quiz-option.wrong {
+    background: #ef5350;
+    color: white;
+    border-color: #ef5350;
+}
+
+.quiz-option.disabled {
+    cursor: default;
+    opacity: 0.7;
+}
+
+/* Hide correct option style for others when disabled but not selected? No need for now */
 </style>
