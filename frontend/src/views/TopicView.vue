@@ -203,9 +203,8 @@ onMounted(async () => {
     topic.value = await getTopicById(topicId)
     words.value = await getWordsByTopicId(topicId)
 
-    if (topic.value) {
-      const book = await getBookById(topic.value.bookId)
-      bookName.value = book?.name || ''
+    if (topic.value && topic.value.book) {
+      bookName.value = topic.value.book.name
     }
 
     // Load SRS progress for this topic
