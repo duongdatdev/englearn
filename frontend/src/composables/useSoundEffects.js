@@ -162,9 +162,27 @@ export function useSoundEffects() {
     playTone(698.46, 0.1, 'sine', 0.2) // F5
   }
   
+  // Generic play helper
+  function playSound(type) {
+    const sounds = {
+      'click': playClick,
+      'success': playSuccess,
+      'error': playError,
+      'flip': playFlip,
+      'levelUp': playLevelUp,
+      'notification': playNotification,
+      'stepComplete': playStepComplete
+    }
+    
+    if (sounds[type]) {
+      sounds[type]()
+    }
+  }
+
   return {
     isSoundEnabled,
     toggleSound,
+    playSound,
     playSuccess,
     playError,
     playClick,

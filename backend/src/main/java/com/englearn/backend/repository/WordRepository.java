@@ -8,4 +8,7 @@ import java.util.List;
 @Repository
 public interface WordRepository extends JpaRepository<Word, Long> {
     List<Word> findByTopicId(Long topicId);
+
+    @org.springframework.data.jpa.repository.Query(value = "SELECT * FROM words ORDER BY RANDOM() LIMIT :limit", nativeQuery = true)
+    List<Word> findRandomWords(@org.springframework.web.bind.annotation.PathVariable("limit") int limit);
 }

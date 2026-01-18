@@ -40,14 +40,9 @@
 
       <!-- Word Type Cards -->
       <div class="word-types-grid">
-        <div 
-          class="word-type-card card" 
-          v-for="(wordType, index) in wordTypes" 
-          :key="index"
-          :style="{ '--type-color': wordType.color }"
-          :class="{ 'expanded': expandedCard === index }"
-          @click="toggleCard(index)"
-        >
+        <div class="word-type-card card" v-for="(wordType, index) in wordTypes" :key="index"
+          :style="{ '--type-color': wordType.color }" :class="{ 'expanded': expandedCard === index }"
+          @click="toggleCard(index)">
           <div class="type-header">
             <span class="type-badge" :style="{ background: wordType.color }">
               {{ wordType.type }}
@@ -55,7 +50,7 @@
             <span class="type-name-vi">{{ wordType.nameVi }}</span>
           </div>
           <p class="type-definition">{{ wordType.definition }}</p>
-          
+
           <!-- Suffixes Section - Always visible for pattern recognition -->
           <div class="suffixes-section" v-if="wordType.suffixes?.length">
             <div class="suffixes-label">
@@ -63,61 +58,46 @@
               Nhận biết qua đuôi từ:
             </div>
             <div class="suffixes-list">
-              <span 
-                class="suffix-tag" 
-                v-for="(suffix, i) in wordType.suffixes" 
-                :key="i"
-                :style="{ background: wordType.color + '20', color: wordType.color, borderColor: wordType.color }"
-              >
+              <span class="suffix-tag" v-for="(suffix, i) in wordType.suffixes" :key="i"
+                :style="{ background: wordType.color + '20', color: wordType.color, borderColor: wordType.color }">
                 {{ suffix }}
               </span>
             </div>
           </div>
-          
+
           <!-- Expanded Content -->
           <div class="type-expanded" v-if="expandedCard === index">
             <!-- Suffix Examples -->
             <div class="suffix-examples" v-if="wordType.suffixExamples?.length">
               <span class="example-label">Ví dụ đuôi từ:</span>
               <div class="examples-list">
-                <span 
-                  class="example-word highlighted" 
-                  v-for="(example, i) in wordType.suffixExamples" 
-                  :key="'se-'+i"
-                  :style="{ borderColor: wordType.color }"
-                >
+                <span class="example-word highlighted" v-for="(example, i) in wordType.suffixExamples" :key="'se-' + i"
+                  :style="{ borderColor: wordType.color }">
                   {{ example }}
                 </span>
               </div>
             </div>
-            
+
             <!-- Tips -->
-            <div class="tips-box" v-if="wordType.tips" :style="{ background: wordType.color + '15', borderColor: wordType.color }">
+            <div class="tips-box" v-if="wordType.tips"
+              :style="{ background: wordType.color + '15', borderColor: wordType.color }">
               <FeatherIcon type="zap" :size="16" />
               <span>{{ wordType.tips }}</span>
             </div>
-            
+
             <!-- Regular Examples -->
             <div class="type-examples" v-if="wordType.examples?.length">
               <span class="example-label">Ví dụ khác:</span>
               <div class="examples-list">
-                <span 
-                  class="example-word" 
-                  v-for="(example, i) in wordType.examples" 
-                  :key="'ex-'+i"
-                  :style="{ borderColor: wordType.color }"
-                >
+                <span class="example-word" v-for="(example, i) in wordType.examples" :key="'ex-' + i"
+                  :style="{ borderColor: wordType.color }">
                   {{ example }}
                 </span>
               </div>
             </div>
           </div>
-          
-          <FeatherIcon 
-            :type="expandedCard === index ? 'chevron-up' : 'chevron-down'" 
-            :size="16" 
-            class="expand-icon"
-          />
+
+          <FeatherIcon :type="expandedCard === index ? 'chevron-up' : 'chevron-down'" :size="16" class="expand-icon" />
         </div>
       </div>
 
@@ -132,10 +112,7 @@
       <!-- Progress Bar -->
       <div class="quiz-progress">
         <div class="progress-bar">
-          <div 
-            class="progress-fill" 
-            :style="{ width: `${(currentQuestion + 1) / totalQuestions * 100}%` }"
-          ></div>
+          <div class="progress-fill" :style="{ width: `${(currentQuestion + 1) / totalQuestions * 100}%` }"></div>
         </div>
         <span class="progress-text">{{ currentQuestion + 1 }} / {{ totalQuestions }}</span>
       </div>
@@ -146,34 +123,21 @@
           <FeatherIcon type="help-circle" :size="18" />
           Từ bôi đậm thuộc loại từ nào?
         </div>
-        
+
         <p class="question-sentence" v-html="highlightedSentence"></p>
 
         <!-- Options -->
         <div class="options-grid">
-          <button 
-            v-for="option in currentQuestionData.options" 
-            :key="option"
-            class="option-btn"
-            :class="{
-              'selected': selectedAnswer === option,
-              'correct': answered && option === currentQuestionData.correctAnswer,
-              'incorrect': answered && selectedAnswer === option && option !== currentQuestionData.correctAnswer
-            }"
-            :disabled="answered"
-            @click="selectAnswer(option)"
-          >
+          <button v-for="option in currentQuestionData.options" :key="option" class="option-btn" :class="{
+            'selected': selectedAnswer === option,
+            'correct': answered && option === currentQuestionData.correctAnswer,
+            'incorrect': answered && selectedAnswer === option && option !== currentQuestionData.correctAnswer
+          }" :disabled="answered" @click="selectAnswer(option)">
             {{ option }}
-            <FeatherIcon 
-              v-if="answered && option === currentQuestionData.correctAnswer" 
-              type="check-circle" 
-              :size="18" 
-            />
-            <FeatherIcon 
-              v-if="answered && selectedAnswer === option && option !== currentQuestionData.correctAnswer" 
-              type="x-circle" 
-              :size="18" 
-            />
+            <FeatherIcon v-if="answered && option === currentQuestionData.correctAnswer" type="check-circle"
+              :size="18" />
+            <FeatherIcon v-if="answered && selectedAnswer === option && option !== currentQuestionData.correctAnswer"
+              type="x-circle" :size="18" />
           </button>
         </div>
 
@@ -188,11 +152,7 @@
       </div>
 
       <!-- Next Button -->
-      <button 
-        v-if="answered" 
-        class="btn-primary btn-next" 
-        @click="nextQuestion"
-      >
+      <button v-if="answered" class="btn-primary btn-next" @click="nextQuestion">
         {{ isLastQuestion ? 'Xem kết quả' : 'Câu tiếp theo' }}
         <FeatherIcon :type="isLastQuestion ? 'flag' : 'arrow-right'" :size="18" />
       </button>
@@ -207,7 +167,7 @@
         <h2 class="result-title">{{ resultTitle }}</h2>
         <p class="result-score">{{ score }} / {{ totalQuestions }}</p>
         <p class="result-message">{{ resultMessage }}</p>
-        
+
         <div class="result-actions">
           <button class="btn-secondary" @click="restartLearn">
             <FeatherIcon type="book-open" :size="18" />
@@ -245,6 +205,8 @@ const phase = ref('learn') // 'learn', 'quiz', 'result'
 // Learn phase
 const wordTypes = ref([])
 const expandedCard = ref(null)
+const preloadedQuestions = ref(null)
+const isPreloading = ref(false)
 
 // Quiz phase
 const questions = ref([])
@@ -309,40 +271,105 @@ function toggleCard(index) {
   playSound('click')
 }
 
-async function startQuiz() {
-  loading.value = true
-  loadingText.value = 'AI đang tạo câu hỏi...'
-  playSound('click')
-  
+async function preloadQuiz() {
+  isPreloading.value = true
+
   try {
-    const wordList = words.value.map(w => ({ english: w.english }))
+    // If words are empty (Global mode), send empty list to let backend pick random words
+    const wordList = words.value.length > 0
+      ? words.value.map(w => ({ english: w.english }))
+      : []
+
     const result = await api.getWordTypeQuiz(wordList, 5)
-    
+
+    if (result.success && result.questions?.length > 0) {
+      preloadedQuestions.value = result.questions
+    }
+  } catch (error) {
+    console.error('Error preloading quiz:', error)
+  }
+
+  isPreloading.value = false
+}
+
+async function startQuiz() {
+  playSound('click')
+
+  // If we have preloaded questions, use them immediately
+  if (preloadedQuestions.value) {
+    questions.value = preloadedQuestions.value
+    startQuizPhase()
+    // Clear preloaded questions so next time we get new ones
+    preloadedQuestions.value = null
+    return
+  }
+
+  loading.value = true
+
+  // If preloading is in progress, wait for it
+  if (isPreloading.value) {
+    loadingText.value = 'Đang hoàn tất tạo câu hỏi...'
+    // Poll for completion
+    const checkPreload = setInterval(() => {
+      if (!isPreloading.value) {
+        clearInterval(checkPreload)
+        if (preloadedQuestions.value) {
+          questions.value = preloadedQuestions.value
+          startQuizPhase()
+          // Clear preloaded questions
+          preloadedQuestions.value = null
+        } else {
+          // Preload failed, try again normally
+          fetchQuizDirectly()
+        }
+      }
+    }, 500)
+    return
+  }
+
+  // If no preload and not preloading, fetch directly
+  loadingText.value = 'AI đang tạo câu hỏi...'
+  await fetchQuizDirectly()
+}
+
+function startQuizPhase() {
+  currentQuestion.value = 0
+  selectedAnswer.value = null
+  answered.value = false
+  score.value = 0
+  phase.value = 'quiz'
+  loading.value = false
+}
+
+async function fetchQuizDirectly() {
+  try {
+    const wordList = words.value.length > 0
+      ? words.value.map(w => ({ english: w.english }))
+      : []
+
+    const result = await api.getWordTypeQuiz(wordList, 5)
+
     if (result.success && result.questions?.length > 0) {
       questions.value = result.questions
-      currentQuestion.value = 0
-      selectedAnswer.value = null
-      answered.value = false
-      score.value = 0
-      phase.value = 'quiz'
+      startQuizPhase()
     } else {
       console.error('Failed to load quiz:', result.message)
       alert('Không thể tạo quiz. Vui lòng thử lại.')
+      loading.value = false
     }
   } catch (error) {
     console.error('Error loading quiz:', error)
     alert('Lỗi kết nối. Vui lòng thử lại.')
+    loading.value = false
   }
-  
-  loading.value = false
 }
 
 function selectAnswer(option) {
   if (answered.value) return
-  
+
   selectedAnswer.value = option
   answered.value = true
-  
+
   if (option === currentQuestionData.value.correctAnswer) {
     score.value++
     playSound('success')
@@ -366,6 +393,8 @@ function nextQuestion() {
 function restartLearn() {
   phase.value = 'learn'
   playSound('click')
+  // Preload new quiz for next time
+  preloadQuiz()
 }
 
 function restartQuiz() {
@@ -379,13 +408,13 @@ function goBack() {
 onMounted(async () => {
   try {
     const topicId = route.params.topicId
-    
+
     // If topicId provided, load topic words
     if (topicId) {
       topic.value = await getTopicById(topicId)
       words.value = await getWordsByTopicId(topicId)
     }
-    
+
     // Use default word types - grammar rules are fixed knowledge, no AI needed
     // This ensures suffixes and tips are always displayed correctly
     wordTypes.value = getDefaultWordTypes()
@@ -393,83 +422,87 @@ onMounted(async () => {
     console.error('Error loading:', error)
     wordTypes.value = getDefaultWordTypes()
   }
-  
+
+
   loading.value = false
+
+  // Start preloading quiz in background
+  preloadQuiz()
 })
 
 function getDefaultWordTypes() {
   return [
-    { 
-      type: 'Noun', nameVi: 'Danh từ', 
+    {
+      type: 'Noun', nameVi: 'Danh từ',
       definition: 'Từ chỉ người, vật, địa điểm, khái niệm',
       suffixes: ['-tion', '-ment', '-ness', '-ity', '-er', '-or', '-ist', '-ism'],
       suffixExamples: ['information', 'development', 'happiness', 'ability', 'teacher'],
       examples: ['book', 'company', 'idea'],
       tips: 'Đa số từ kết thúc bằng -tion, -ment, -ness, -ity là danh từ',
-      color: '#3B82F6' 
+      color: '#3B82F6'
     },
-    { 
-      type: 'Verb', nameVi: 'Động từ', 
+    {
+      type: 'Verb', nameVi: 'Động từ',
       definition: 'Từ chỉ hành động hoặc trạng thái',
       suffixes: ['-ize', '-ify', '-ate', '-en'],
       suffixExamples: ['organize', 'simplify', 'communicate', 'strengthen'],
       examples: ['run', 'think', 'become'],
       tips: 'Từ kết thúc bằng -ize, -ify, -ate thường là động từ',
-      color: '#10B981' 
+      color: '#10B981'
     },
-    { 
-      type: 'Adjective', nameVi: 'Tính từ', 
+    {
+      type: 'Adjective', nameVi: 'Tính từ',
       definition: 'Từ mô tả tính chất của danh từ',
       suffixes: ['-ful', '-less', '-ous', '-ive', '-able', '-ible', '-al', '-ic'],
       suffixExamples: ['beautiful', 'careless', 'dangerous', 'active', 'comfortable'],
       examples: ['fast', 'important'],
       tips: 'Từ kết thúc bằng -ful, -less, -ous, -ive, -able thường là tính từ',
-      color: '#F59E0B' 
+      color: '#F59E0B'
     },
-    { 
-      type: 'Adverb', nameVi: 'Trạng từ', 
+    {
+      type: 'Adverb', nameVi: 'Trạng từ',
       definition: 'Từ bổ nghĩa cho động từ, tính từ, hoặc trạng từ khác',
       suffixes: ['-ly'],
       suffixExamples: ['quickly', 'carefully', 'happily', 'beautifully'],
       examples: ['very', 'always', 'never'],
       tips: 'Hầu hết trạng từ kết thúc bằng -LY (thêm -ly vào tính từ)',
-      color: '#8B5CF6' 
+      color: '#8B5CF6'
     },
-    { 
-      type: 'Pronoun', nameVi: 'Đại từ', 
+    {
+      type: 'Pronoun', nameVi: 'Đại từ',
       definition: 'Từ thay thế cho danh từ',
       suffixes: ['-self', '-selves'],
       suffixExamples: ['myself', 'themselves', 'herself'],
       examples: ['he', 'she', 'they', 'it', 'we'],
       tips: 'Đại từ phản thân kết thúc bằng -self (số ít) hoặc -selves (số nhiều)',
-      color: '#EC4899' 
+      color: '#EC4899'
     },
-    { 
-      type: 'Preposition', nameVi: 'Giới từ', 
+    {
+      type: 'Preposition', nameVi: 'Giới từ',
       definition: 'Từ chỉ mối quan hệ vị trí, thời gian, hướng',
       suffixes: [],
       suffixExamples: [],
       examples: ['in', 'on', 'at', 'by', 'for', 'with', 'about'],
       tips: 'Giới từ thường đứng trước danh từ/đại từ để tạo cụm giới từ',
-      color: '#06B6D4' 
+      color: '#06B6D4'
     },
-    { 
-      type: 'Conjunction', nameVi: 'Liên từ', 
+    {
+      type: 'Conjunction', nameVi: 'Liên từ',
       definition: 'Từ nối các từ, cụm từ, mệnh đề',
       suffixes: [],
       suffixExamples: [],
       examples: ['and', 'but', 'or', 'because', 'although', 'while'],
       tips: 'Liên từ phối hợp: and, but, or. Liên từ phụ thuộc: because, although, when',
-      color: '#F97316' 
+      color: '#F97316'
     },
-    { 
-      type: 'Interjection', nameVi: 'Thán từ', 
+    {
+      type: 'Interjection', nameVi: 'Thán từ',
       definition: 'Từ biểu thị cảm xúc mạnh mẽ',
       suffixes: [],
       suffixExamples: [],
       examples: ['wow', 'oh', 'oops', 'hey', 'ouch'],
       tips: 'Thán từ thường đứng một mình, theo sau bởi dấu chấm than (!)',
-      color: '#EF4444' 
+      color: '#EF4444'
     }
   ]
 }
@@ -567,8 +600,13 @@ function getDefaultWordTypes() {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Learn Phase */
@@ -884,6 +922,7 @@ function getDefaultWordTypes() {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -983,7 +1022,8 @@ function getDefaultWordTypes() {
   justify-content: center;
 }
 
-.btn-primary, .btn-secondary {
+.btn-primary,
+.btn-secondary {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -1019,11 +1059,11 @@ function getDefaultWordTypes() {
   .options-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .word-types-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .result-actions {
     flex-direction: column;
   }

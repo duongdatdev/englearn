@@ -216,8 +216,8 @@ public class AIController {
                 .map(w -> w.get("english"))
                 .collect(Collectors.toList());
         } else {
-            wordList = wordRepository.findAll().stream()
-                .limit(15)
+            // Get random words from database for global practice
+            wordList = wordRepository.findRandomWords(15).stream()
                 .map(word -> word.getEnglish())
                 .collect(Collectors.toList());
         }

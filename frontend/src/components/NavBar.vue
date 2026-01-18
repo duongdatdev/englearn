@@ -29,20 +29,25 @@
             <FeatherIcon type="rotate-cw" :size="18" class="nav-icon" />
             <span>Ôn tập</span>
           </router-link>
-          
+
+          <router-link to="/word-types" class="nav-link">
+            <FeatherIcon type="git-branch" :size="18" class="nav-icon" />
+            <span>Phân loại từ</span>
+          </router-link>
+
           <!-- Admin link - only show if admin -->
           <router-link v-if="isAdmin" to="/admin" class="nav-link">
             <FeatherIcon type="settings" :size="18" class="nav-icon" />
             <span>Quản lý</span>
           </router-link>
-          
+
           <NotificationDropdown />
-          
+
           <!-- Sound Toggle -->
           <button class="sound-toggle" @click="toggleSound" :title="isSoundEnabled ? 'Tắt âm thanh' : 'Bật âm thanh'">
             <FeatherIcon :type="isSoundEnabled ? 'volume-2' : 'volume-x'" :size="18" />
           </button>
-          
+
           <ThemeToggle />
 
           <!-- User Menu -->
