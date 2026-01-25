@@ -461,6 +461,79 @@ public class GeminiService {
         return callGeminiMultimodal(prompt, base64Audio, mimeType, "pronunciation-audio");
     }
 
+    /**
+     * Generate a practice passage for speaking practice
+     */
+    public AIResponse generatePracticePassage(String topic, List<String> words) {
+        String wordList = words != null && !words.isEmpty() 
+            ? String.join(", ", words.stream().limit(10).toList())
+            : "";
+        
+        String prompt = String.format("""
+            Bạn là giáo viên tiếng Anh. Hãy tạo một đoạn văn ngắn (3-5 câu) để học viên luyện đọc.
+            
+            Chủ đề: %s
+            %s
+            
+            Yêu cầu:
+            1. Đoạn văn phải tự nhiên, dễ đọc, phù hợp cho luyện phát âm
+            2. Sử dụng từ vựng đơn giản đến trung bình
+            3. Câu không quá dài, dễ phân đoạn khi đọc
+            4. Nội dung thú vị, có ý nghĩa
+            
+            Trả lời theo định dạng JSON:
+            {
+                "passageText": "Đoạn văn tiếng Anh để luyện đọc...",
+                "vietnameseTranslation": "Bản dịch tiếng Việt..."
+            }
+            
+            Chỉ trả về JSON, không thêm text khác.
+            """, 
+            topic != null ? topic : "Daily life",
+            !wordList.isEmpty() ? "Từ vựng gợi ý: " + wordList : "");
+
+        return callGeminiAndParse(prompt, "practice-passage");
+    }
+
+    /**
+     * Analyze paragraph pronunciation from audio - word by word analysis
+     */
+    public AIResponse analyzeParagraphPronunciation(String paragraph, byte[] audioBytes, String mimeType) {
+        String base64Audio = java.util.Base64.getEncoder().encodeToString(audioBytes);
+
+        String prompt = String.format("""
+            Bạn là chuyên gia phát âm tiếng Anh.
+            
+            Đoạn văn mẫu người dùng cần đọc:
+            "%s"
+            
+            Hãy nghe audio đính kèm và phân tích TỪNG TỪ:
+            1. So sánh phát âm của người dùng với đoạn văn mẫu
+            2. Đánh giá từng từ: correct (đọc đúng), warning (cần cải thiện), incorrect (đọc sai)
+            3. Với từ sai hoặc cần cải thiện, cung cấp hướng dẫn sửa chi tiết
+            
+            Trả lời theo định dạng JSON:
+            {
+                "transcript": "Toàn bộ text bạn nghe được từ audio",
+                "overallScore": (điểm tổng 0-100),
+                "overallFeedback": "Nhận xét tổng quan về phát âm",
+                "wordAnalysis": [
+                    {
+                        "word": "từ trong đoạn văn gốc",
+                        "status": "correct/warning/incorrect",
+                        "spokenAs": "từ người dùng thực sự đọc (nếu khác)",
+                        "feedback": "Nhận xét ngắn",
+                        "tip": "Hướng dẫn sửa (nếu cần)"
+                    }
+                ]
+            }
+            
+            Chỉ trả về JSON.
+            """, paragraph);
+
+        return callGeminiMultimodal(prompt, base64Audio, mimeType, "paragraph-pronunciation");
+    }
+
     private AIResponse callGeminiMultimodal(String prompt, String base64Data, String mimeType, String type) {
         try {
             Map<String, Object> requestBody = Map.of(
@@ -683,6 +756,30 @@ public class GeminiService {
                     builder.feedback(jsonResponse.path("feedback").asText());
                     builder.tips(jsonResponse.path("tips").asText());
                     builder.transcript(jsonResponse.path("transcript").asText());
+                }
+                case "practice-passage" -> {
+                    builder.passageText(jsonResponse.path("passageText").asText());
+                    builder.explanation(jsonResponse.path("vietnameseTranslation").asText());
+                }
+                case "paragraph-pronunciation" -> {
+                    builder.transcript(jsonResponse.path("transcript").asText());
+                    builder.score(jsonResponse.path("overallScore").asInt());
+                    builder.feedback(jsonResponse.path("overallFeedback").asText());
+                    // Parse word analysis array
+                    List<Map<String, Object>> wordAnalysisList = new ArrayList<>();
+                    JsonNode analysisNode = jsonResponse.path("wordAnalysis");
+                    if (analysisNode.isArray()) {
+                        for (JsonNode wordNode : analysisNode) {
+                            Map<String, Object> wordMap = new java.util.HashMap<>();
+                            wordMap.put("word", wordNode.path("word").asText());
+                            wordMap.put("status", wordNode.path("status").asText());
+                            wordMap.put("spokenAs", wordNode.path("spokenAs").asText());
+                            wordMap.put("feedback", wordNode.path("feedback").asText());
+                            wordMap.put("tip", wordNode.path("tip").asText());
+                            wordAnalysisList.add(wordMap);
+                        }
+                    }
+                    builder.wordAnalysis(wordAnalysisList);
                 }
             }
             

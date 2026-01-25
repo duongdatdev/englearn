@@ -281,4 +281,58 @@ public class AIController {
             );
         }
     }
+
+    /**
+     * Generate a practice passage for speaking practice
+     */
+    @PostMapping("/generate-practice-passage")
+    public ResponseEntity<AIResponse> generatePracticePassage(@RequestBody AIRequest request) {
+        String topic = request.getTopic() != null ? request.getTopic() : "Daily life";
+        
+        // Get words if provided
+        java.util.List<String> words = null;
+        if (request.getWords() != null && !request.getWords().isEmpty()) {
+            words = request.getWords().stream()
+                .map(w -> w.get("english"))
+                .collect(java.util.stream.Collectors.toList());
+        }
+        
+        AIResponse response = geminiService.generatePracticePassage(topic, words);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Analyze paragraph pronunciation from audio - word by word analysis
+     */
+    @PostMapping("/pronunciation-paragraph")
+    public ResponseEntity<AIResponse> analyzeParagraphPronunciation(
+            @RequestParam("audio") org.springframework.web.multipart.MultipartFile audioFile,
+            @RequestParam("paragraph") String paragraph) {
+        
+        if (audioFile.isEmpty() || paragraph == null || paragraph.isBlank()) {
+            return ResponseEntity.badRequest().body(
+                AIResponse.builder()
+                    .success(false)
+                    .message("Vui lòng cung cấp file audio và đoạn văn cần đọc")
+                    .build()
+            );
+        }
+
+        try {
+            AIResponse response = geminiService.analyzeParagraphPronunciation(
+                paragraph, 
+                audioFile.getBytes(), 
+                audioFile.getContentType() != null ? audioFile.getContentType() : "audio/webm"
+            );
+            return ResponseEntity.ok(response);
+        } catch (java.io.IOException e) {
+            return ResponseEntity.internalServerError().body(
+                AIResponse.builder()
+                    .success(false)
+                    .message("Lỗi đọc file audio: " + e.getMessage())
+                    .build()
+            );
+        }
+    }
 }
+

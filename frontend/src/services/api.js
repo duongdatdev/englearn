@@ -241,5 +241,24 @@ export const api = {
     })
     if (!response.ok) throw new Error('Failed to analyze audio')
     return response.json()
+  },
+
+  async generatePracticePassage(topic = null, words = null) {
+    const response = await fetch(`${API_URL}/ai/generate-practice-passage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic, words })
+    })
+    return response.json()
+  },
+
+  async checkParagraphPronunciation(formData) {
+    const response = await fetch(`${API_URL}/ai/pronunciation-paragraph`, {
+      method: 'POST',
+      body: formData
+    })
+    if (!response.ok) throw new Error('Failed to analyze paragraph pronunciation')
+    return response.json()
   }
 }
+

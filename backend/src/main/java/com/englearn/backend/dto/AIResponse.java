@@ -50,4 +50,8 @@ public class AIResponse {
     // Word Type Learning
     private List<Map<String, Object>> wordTypes;  // For lesson content
     private List<Map<String, Object>> questions;  // For quiz questions
+    
+    // Paragraph Pronunciation
+    private String passageText;  // Generated practice passage
+    private List<Map<String, Object>> wordAnalysis;  // Word-by-word pronunciation analysis
 }
