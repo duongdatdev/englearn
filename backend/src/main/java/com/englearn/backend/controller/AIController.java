@@ -302,6 +302,24 @@ public class AIController {
     }
 
     /**
+     * Transcribe text to IPA
+     */
+    @PostMapping("/transcribe")
+    public ResponseEntity<AIResponse> transcribeText(@RequestBody AIRequest request) {
+        if (request.getInput() == null || request.getInput().isBlank()) {
+            return ResponseEntity.badRequest().body(
+                AIResponse.builder()
+                    .success(false)
+                    .message("Vui lòng cung cấp văn bản cần phiên âm")
+                    .build()
+            );
+        }
+        
+        AIResponse response = geminiService.transcribeText(request.getInput());
+        return ResponseEntity.ok(response);
+    }
+
+    /**
      * Analyze paragraph pronunciation from audio - word by word analysis
      */
     @PostMapping("/pronunciation-paragraph")

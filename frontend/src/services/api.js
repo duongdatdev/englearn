@@ -196,6 +196,15 @@ export const api = {
     return response.json()
   },
 
+  async transcribe(input) {
+    const response = await fetch(`${API_URL}/ai/transcribe`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ input })
+    })
+    return response.json()
+  },
+
   async gradeSentence(word, vietnamese, userSentence) {
     const response = await fetch(`${API_URL}/ai/grade-sentence`, {
       method: 'POST',
@@ -258,6 +267,18 @@ export const api = {
       body: formData
     })
     if (!response.ok) throw new Error('Failed to analyze paragraph pronunciation')
+    return response.json()
+  },
+
+  // Grammar Tenses
+  async getTenses() {
+    const response = await fetch(`${API_URL}/grammar`)
+    return response.json()
+  },
+
+  async getGrammarLesson(tenseName) {
+    const response = await fetch(`${API_URL}/grammar/${encodeURIComponent(tenseName)}`)
+    if (!response.ok) throw new Error('Failed to fetch grammar lesson')
     return response.json()
   }
 }

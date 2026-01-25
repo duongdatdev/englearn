@@ -113,6 +113,18 @@ const routes = [
     name: 'SpeakingPractice',
     component: () => import('../views/SpeakingPracticeView.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/grammar',
+    name: 'Grammar',
+    component: () => import('../views/GrammarView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/grammar/:tense',
+    name: 'GrammarDetail',
+    component: () => import('../views/GrammarDetailView.vue'),
+    meta: { requiresAuth: true }
   }
 ]
 

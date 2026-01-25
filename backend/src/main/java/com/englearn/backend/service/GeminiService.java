@@ -462,6 +462,30 @@ public class GeminiService {
     }
 
     /**
+     * Transcribe text to IPA
+     */
+    public AIResponse transcribeText(String text) {
+        String prompt = String.format("""
+            Chuyển đổi văn bản tiếng Anh sau sang phiên âm IPA (International Phonetic Alphabet).
+            
+            Văn bản: "%s"
+            
+            Yêu cầu:
+            1. Chỉ cung cấp phiên âm IPA, giữ nguyên cấu trúc câu và dấu câu.
+            2. Sử dụng phiên âm chuẩn Anh-Mỹ (General American).
+            
+            Trả lời theo định dạng JSON:
+            {
+                "ipaTranscription": "phiên âm IPA của cả văn bản"
+            }
+            
+            Chỉ trả về JSON, không thêm text khác.
+            """, text);
+
+        return callGeminiAndParse(prompt, "transcribe");
+    }
+
+    /**
      * Generate a practice passage for speaking practice
      */
     public AIResponse generatePracticePassage(String topic, List<String> words) {
@@ -484,7 +508,8 @@ public class GeminiService {
             Trả lời theo định dạng JSON:
             {
                 "passageText": "Đoạn văn tiếng Anh để luyện đọc...",
-                "vietnameseTranslation": "Bản dịch tiếng Việt..."
+                "vietnameseTranslation": "Bản dịch tiếng Việt...",
+                "ipaTranscription": "Phiên âm IPA của cả đoạn văn..."
             }
             
             Chỉ trả về JSON, không thêm text khác.
@@ -532,6 +557,48 @@ public class GeminiService {
             """, paragraph);
 
         return callGeminiMultimodal(prompt, base64Audio, mimeType, "paragraph-pronunciation");
+    }
+
+    /**
+     * Generate 12 Tenses Grammar Lesson
+     */
+    public AIResponse generateGrammarLesson(String tenseName) {
+        String prompt = String.format("""
+            Bạn là giáo viên tiếng Anh chuyên sâu về ngữ pháp. Hãy soạn bài học chi tiết về thì "%s".
+
+            Yêu cầu nội dung:
+            1. Định nghĩa: Giải thích bản chất và ý nghĩa của thì này.
+            2. Công thức/Cấu trúc: Các dạng Khẳng định (+), Phủ định (-), Nghi vấn (?).
+            3. Cách dùng: Các trường hợp sử dụng cụ thể.
+            4. Ví dụ: 5 câu ví dụ minh họa rõ ràng.
+            5. Bài tập trắc nghiệm: 5 câu hỏi để kiểm tra hiểu biết, có đáp án và giải thích.
+
+            Trả lời theo định dạng JSON:
+            {
+                "title": "Tên thì (Ví dụ: Thì Hiện tại đơn - Present Simple)",
+                "description": "Định nghĩa và giải thích tổng quan...",
+                "structure": "Cấu trúc chi tiết (dùng markdown hoặc text rõ ràng)...",
+                "usage": "Các cách dùng chi tiết...",
+                "usageExamples": [
+                    "Example 1",
+                    "Example 2",
+                     ...
+                ],
+                "questions": [
+                    {
+                        "question": "Câu hỏi trắc nghiệm...",
+                        "options": ["A. ...", "B. ...", "C. ...", "D. ..."],
+                        "correctAnswer": "Đáp án đúng (ví dụ: A)",
+                        "explanation": "Giải thích tại sao đúng..."
+                    },
+                    ...
+                ]
+            }
+
+            Chỉ trả về JSON, không thêm text khác.
+            """, tenseName);
+
+        return callGeminiAndParse(prompt, "grammar-lesson");
     }
 
     private AIResponse callGeminiMultimodal(String prompt, String base64Data, String mimeType, String type) {
@@ -760,6 +827,10 @@ public class GeminiService {
                 case "practice-passage" -> {
                     builder.passageText(jsonResponse.path("passageText").asText());
                     builder.explanation(jsonResponse.path("vietnameseTranslation").asText());
+                    builder.ipaTranscription(jsonResponse.path("ipaTranscription").asText());
+                }
+                case "transcribe" -> {
+                    builder.ipaTranscription(jsonResponse.path("ipaTranscription").asText());
                 }
                 case "paragraph-pronunciation" -> {
                     builder.transcript(jsonResponse.path("transcript").asText());
@@ -780,6 +851,28 @@ public class GeminiService {
                         }
                     }
                     builder.wordAnalysis(wordAnalysisList);
+                }
+                case "grammar-lesson" -> {
+                    builder.title(jsonResponse.path("title").asText());
+                    builder.description(jsonResponse.path("description").asText());
+                    builder.structure(jsonResponse.path("structure").asText());
+                    builder.usage(jsonResponse.path("usage").asText());
+                    builder.usageExamples(parseStringList(jsonResponse.path("usageExamples")));
+                    
+                    // Parse questions
+                    List<Map<String, Object>> questionsList = new ArrayList<>();
+                    JsonNode questionsNode = jsonResponse.path("questions");
+                    if (questionsNode.isArray()) {
+                        for (JsonNode qNode : questionsNode) {
+                            Map<String, Object> qMap = new java.util.HashMap<>();
+                            qMap.put("question", qNode.path("question").asText());
+                            qMap.put("options", parseStringList(qNode.path("options")));
+                            qMap.put("correctAnswer", qNode.path("correctAnswer").asText());
+                            qMap.put("explanation", qNode.path("explanation").asText());
+                            questionsList.add(qMap);
+                        }
+                    }
+                    builder.questions(questionsList);
                 }
             }
             

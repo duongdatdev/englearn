@@ -53,5 +53,12 @@ public class AIResponse {
     
     // Paragraph Pronunciation
     private String passageText;  // Generated practice passage
+    private String ipaTranscription; // IPA transcription for the passage
     private List<Map<String, Object>> wordAnalysis;  // Word-by-word pronunciation analysis
+
+    // Grammar Lesson
+    private String title;
+    private String structure;
+    private String usage;
+    private String description;
 }

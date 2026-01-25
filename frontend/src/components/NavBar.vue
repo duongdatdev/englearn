@@ -30,19 +30,24 @@
             <span>Ôn tập</span>
           </router-link>
 
+          <router-link to="/grammar" class="nav-link">
+            <FeatherIcon type="book" :size="18" class="nav-icon" />
+            <span>Ngữ pháp</span>
+          </router-link>
+
           <router-link to="/word-types" class="nav-link">
             <FeatherIcon type="git-branch" :size="18" class="nav-icon" />
             <span>Phân loại từ</span>
           </router-link>
 
           <router-link to="/my-decks" class="nav-link">
-             <FeatherIcon type="layers" :size="18" class="nav-icon" />
-             <span>Bộ từ của tôi</span>
+            <FeatherIcon type="layers" :size="18" class="nav-icon" />
+            <span>Bộ từ của tôi</span>
           </router-link>
 
           <router-link to="/speaking-practice" class="nav-link">
-             <FeatherIcon type="mic" :size="18" class="nav-icon" />
-             <span>Luyện nói</span>
+            <FeatherIcon type="mic" :size="18" class="nav-icon" />
+            <span>Luyện nói</span>
           </router-link>
 
           <!-- Admin link - only show if admin -->

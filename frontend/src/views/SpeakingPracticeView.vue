@@ -39,6 +39,7 @@
         <div class="target-section">
           <span class="label">Từ cần đọc:</span>
           <h2 class="target-word">{{ selectedWord.word }}</h2>
+          <p class="word-ipa" v-if="selectedWord.pronunciation">/{{ selectedWord.pronunciation }}/</p>
           <p class="word-meaning">{{ selectedWord.vietnamese }}</p>
           <button class="btn-icon speak-sample" @click="speakSample(selectedWord.word)">
             <FeatherIcon type="volume-2" :size="24" />
@@ -102,8 +103,9 @@
             class="paragraph-input"></textarea>
 
           <div class="action-buttons">
-            <button class="btn btn-primary" @click="useParagraph" :disabled="!customParagraph.trim()">
-              <FeatherIcon type="check" :size="16" /> Sử dụng đoạn văn này
+            <button class="btn btn-primary" @click="useParagraph" :disabled="!customParagraph.trim() || isGenerating">
+              <FeatherIcon type="check" :size="16" />
+              {{ isGenerating ? 'Đang tạo IPA...' : 'Sử dụng đoạn văn này' }}
             </button>
             <span class="divider-text">hoặc</span>
             <button class="btn btn-secondary" @click="generatePassage" :disabled="isGenerating">
@@ -137,6 +139,10 @@
           <div class="paragraph-header">
             <FeatherIcon type="file-text" :size="20" />
             <span>Đoạn văn cần đọc</span>
+          </div>
+
+          <div class="paragraph-ipa" v-if="paragraphIPA">
+            /{{ paragraphIPA }}/
           </div>
 
           <!-- Before analysis: show plain text -->
@@ -256,6 +262,7 @@ const selectedWord = ref(null)
 // Paragraph tab state
 const customParagraph = ref('')
 const paragraphText = ref('')
+const paragraphIPA = ref('')
 const paragraphTranslation = ref('')
 const isGenerating = ref(false)
 const showTopicSelector = ref(false)
@@ -353,11 +360,27 @@ const statusText = computed(() => {
 })
 
 // Paragraph functions
-function useParagraph() {
-  paragraphText.value = customParagraph.value.trim()
+async function useParagraph() {
+  const text = customParagraph.value.trim()
+  if (!text) return
+
+  paragraphText.value = text
   wordAnalysis.value = []
   paragraphFeedback.value = ''
   score.value = 0
+
+  // Get IPA transcription
+  isGenerating.value = true
+  try {
+    const response = await api.transcribe(text)
+    if (response.success) {
+      paragraphIPA.value = response.ipaTranscription
+    }
+  } catch (e) {
+    console.error('Failed to transcribe:', e)
+  } finally {
+    isGenerating.value = false
+  }
 }
 
 function generatePassage() {
@@ -372,6 +395,7 @@ async function confirmGeneratePassage() {
     const response = await api.generatePracticePassage(selectedTopic.value)
     if (response.success && response.passageText) {
       paragraphText.value = response.passageText
+      paragraphIPA.value = response.ipaTranscription || ''
       paragraphTranslation.value = response.explanation || ''
       wordAnalysis.value = []
       paragraphFeedback.value = ''
@@ -444,6 +468,7 @@ function selectWordForDetail(wordData) {
 
 function resetParagraph() {
   paragraphText.value = ''
+  paragraphIPA.value = ''
   customParagraph.value = ''
   wordAnalysis.value = []
   paragraphFeedback.value = ''
@@ -567,6 +592,13 @@ function resetParagraph() {
 .word-meaning {
   color: var(--text-muted);
   font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.word-ipa {
+  font-family: 'Charis SIL', 'Doulos SIL', serif;
+  color: var(--text-muted);
+  font-size: 1.1rem;
   margin-bottom: 0.5rem;
 }
 
@@ -896,6 +928,14 @@ function resetParagraph() {
 .paragraph-content.analyzed {
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
+}
+
+.paragraph-ipa {
+  font-family: 'Charis SIL', 'Doulos SIL', serif;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
 }
 
 .speak-sample-btn {
