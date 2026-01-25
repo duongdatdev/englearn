@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/ai")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001", "http://localhost:5173"})
 public class AIController {
 
     @Autowired
@@ -227,5 +227,58 @@ public class AIController {
         
         AIResponse response = geminiService.generateWordTypeQuiz(wordList, questionCount);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Analyze pronunciation feedback
+     */
+    @PostMapping("/pronunciation-feedback")
+    public ResponseEntity<AIResponse> getPronunciationFeedback(@RequestBody AIRequest request) {
+        if (request.getWord() == null || request.getUserSentence() == null) {
+             return ResponseEntity.badRequest().body(
+                AIResponse.builder()
+                    .success(false)
+                    .message("Vui lòng cung cấp từ mẫu và text người dùng nói")
+                    .build()
+            );
+        }
+        
+        // Use Gemini to compare and give tips
+        AIResponse response = geminiService.analyzePronunciation(request.getWord(), request.getUserSentence());
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Analyze pronunciation from audio file (Multimodal)
+     */
+    @PostMapping("/pronunciation-audio")
+    public ResponseEntity<AIResponse> analyzePronunciationAudio(
+            @RequestParam("audio") org.springframework.web.multipart.MultipartFile audioFile,
+            @RequestParam("word") String word) {
+        
+        if (audioFile.isEmpty() || word == null || word.isBlank()) {
+            return ResponseEntity.badRequest().body(
+                AIResponse.builder()
+                    .success(false)
+                    .message("Vui lòng cung cấp file audio và từ cần đọc")
+                    .build()
+            );
+        }
+
+        try {
+            AIResponse response = geminiService.analyzePronunciationFromAudio(
+                word, 
+                audioFile.getBytes(), 
+                audioFile.getContentType() != null ? audioFile.getContentType() : "audio/webm"
+            );
+            return ResponseEntity.ok(response);
+        } catch (java.io.IOException e) {
+            return ResponseEntity.internalServerError().body(
+                AIResponse.builder()
+                    .success(false)
+                    .message("Lỗi đọc file audio: " + e.getMessage())
+                    .build()
+            );
+        }
     }
 }

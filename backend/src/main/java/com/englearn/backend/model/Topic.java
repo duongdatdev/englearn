@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.englearn.backend.model.User;
 
 @Entity
 @Data
@@ -20,7 +21,12 @@ public class Topic {
     private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "book_id", nullable = false)
+    @JoinColumn(name = "book_id", nullable = true) // Nullable for custom topics
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Book book;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id") // Nullable: Null = System Topic
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "passwordHash", "role", "createdAt", "lastLoginAt"})
+    private User user;
 }

@@ -23,6 +23,7 @@ public class AIResponse {
     private boolean isCorrect;
     private String suggestion;
     private String explanation;
+    private String transcript; // For pronunciation check
     
     // Word Explanation
     private String wordExplanation;

@@ -52,6 +52,22 @@ export const api = {
     return response.json()
   },
 
+  async getMyTopics() {
+    const response = await fetch(`${API_URL}/topics/my`, {
+        headers: getAuthHeaders()
+    })
+    return response.json()
+  },
+
+  async createCustomTopic(topic) {
+    const response = await fetch(`${API_URL}/topics/custom`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+      body: JSON.stringify(topic)
+    })
+    return response.json()
+  },
+
 
   async getRandomWords(limit = 10) {
     const response = await fetch(`${API_URL}/words/random?limit=${limit}`)
@@ -205,6 +221,25 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ words, level: String(questionCount) })
     })
+    return response.json()
+  },
+
+  async getPronunciationFeedback(word, userSentence) {
+    const response = await fetch(`${API_URL}/ai/pronunciation-feedback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ word, userSentence })
+    })
+    return response.json()
+  },
+
+  async checkPronunciationAudio(formData) {
+    const response = await fetch(`${API_URL}/ai/pronunciation-audio`, {
+      method: 'POST',
+      // No Content-Type header needed for FormData, browser sets it with boundary
+      body: formData
+    })
+    if (!response.ok) throw new Error('Failed to analyze audio')
     return response.json()
   }
 }

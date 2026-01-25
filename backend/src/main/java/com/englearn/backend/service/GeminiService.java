@@ -28,7 +28,12 @@ public class GeminiService {
     private String apiUrl;
 
     public GeminiService(WebClient.Builder webClientBuilder, ObjectMapper objectMapper) {
-        this.webClient = webClientBuilder.build();
+        reactor.netty.http.client.HttpClient httpClient = reactor.netty.http.client.HttpClient.create()
+            .responseTimeout(Duration.ofSeconds(60));
+
+        this.webClient = webClientBuilder
+            .clientConnector(new org.springframework.http.client.reactive.ReactorClientHttpConnector(httpClient))
+            .build();
         this.objectMapper = objectMapper;
     }
 
@@ -294,11 +299,11 @@ public class GeminiService {
             Yêu cầu QUAN TRỌNG:
             1. Giới thiệu 8 loại từ: Noun, Verb, Adjective, Adverb, Pronoun, Preposition, Conjunction, Interjection
             2. Mỗi loại PHẢI có:
-               - Tên tiếng Anh và tiếng Việt
-               - Định nghĩa ngắn gọn
-               - DANH SÁCH CÁC HẬU TỐ (suffixes) phổ biến để nhận biết qua mặt chữ
-               - Ví dụ từ có hậu tố đó
-               - Mẹo ghi nhớ/nhận biết
+                - Tên tiếng Anh và tiếng Việt
+                - Định nghĩa ngắn gọn
+                - DANH SÁCH CÁC HẬU TỐ (suffixes) phổ biến để nhận biết qua mặt chữ
+                - Ví dụ từ có hậu tố đó
+                - Mẹo ghi nhớ/nhận biết
             
             Trả lời theo định dạng JSON:
             {
@@ -396,6 +401,105 @@ public class GeminiService {
         return callGeminiAndParse(prompt, "word-type-quiz");
     }
 
+    /**
+     * Analyze pronunciation feedback (Text-based)
+     */
+    public AIResponse analyzePronunciation(String word, String userSentence) {
+        String prompt = String.format("""
+            Bạn là chuyên gia phát âm tiếng Anh.
+            
+            Từ mục tiêu: "%s"
+            Học viên phát âm nghe giống: "%s"
+            
+            Hãy so sánh và đánh giá:
+            1. Phát âm này có chấp nhận được không? (Chính xác hoặc gần đúng)
+            2. Hướng dẫn cách sửa khẩu hình miệng.
+            
+            Trả lời theo định dạng JSON:
+            {
+                "isCorrect": true/false (true nếu giống > 80%%),
+                "score": (0-100),
+                "feedback": "nhận xét ngắn gọn",
+                "tips": "hướng dẫn sửa lỗi chi tiết (ví dụ: cong lưỡi hơn, mở rộng miệng...)"
+            }
+            
+            Chỉ trả về JSON, không thêm text khác.
+            """, word, userSentence);
+
+        return callGeminiAndParse(prompt, "pronunciation");
+    }
+
+    /**
+     * Analyze pronunciation from audio file (Multimodal)
+     */
+    public AIResponse analyzePronunciationFromAudio(String word, byte[] audioBytes, String mimeType) {
+        // Encode audio to Base64
+        String base64Audio = java.util.Base64.getEncoder().encodeToString(audioBytes);
+
+        String prompt = String.format("""
+            Bạn là chuyên gia phát âm tiếng Anh.
+            
+            Từ mục tiêu người dùng cần đọc: "%s"
+            
+            Hãy nghe audio đính kèm và đánh giá:
+            1. Người dùng đọc từ gì? (Transcript lại những gì bạn nghe thấy)
+            2. Phát âm có chính xác so với từ mục tiêu không?
+            3. Hướng dẫn sửa lỗi chi tiết (khẩu hình, âm tiết nào sai).
+            
+            Trả lời theo định dạng JSON:
+            {
+                "transcript": "từ/câu bạn nghe được",
+                "isCorrect": true/false (true nếu giống > 80%%),
+                "score": (0-100),
+                "feedback": "nhận xét ngắn gọn",
+                "tips": "hướng dẫn sửa lỗi chi tiết"
+            }
+            
+            Chỉ trả về JSON.
+            """, word);
+
+        return callGeminiMultimodal(prompt, base64Audio, mimeType, "pronunciation-audio");
+    }
+
+    private AIResponse callGeminiMultimodal(String prompt, String base64Data, String mimeType, String type) {
+        try {
+            Map<String, Object> requestBody = Map.of(
+                "contents", List.of(
+                    Map.of("parts", List.of(
+                        Map.of("text", prompt),
+                        Map.of("inline_data", Map.of(
+                            "mime_type", mimeType,
+                            "data", base64Data
+                        ))
+                    ))
+                ),
+                "generationConfig", Map.of(
+                    "temperature", 0.7,
+                    "maxOutputTokens", 16384
+                )
+            );
+
+            String response = webClient.post()
+                .uri(apiUrl + "?key=" + apiKey)
+                .header("Content-Type", "application/json")
+                .bodyValue(requestBody)
+                .retrieve()
+                .bodyToMono(String.class)
+                .retryWhen(Retry.backoff(5, Duration.ofSeconds(2))
+                    .filter(throwable -> throwable instanceof WebClientResponseException &&
+                        (((WebClientResponseException) throwable).getStatusCode().value() == 429 ||
+                         ((WebClientResponseException) throwable).getStatusCode().is5xxServerError()))
+                    .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> retrySignal.failure()))
+                .block();
+
+            return parseGeminiResponse(response, type);
+        } catch (Exception e) {
+             return AIResponse.builder()
+                .success(false)
+                .message("Lỗi xử lý Audio AI: " + e.getMessage())
+                .build();
+        }
+    }
 
     private AIResponse callGeminiAndParse(String prompt, String type) {
         try {
@@ -417,28 +521,29 @@ public class GeminiService {
                 .bodyValue(requestBody)
                 .retrieve()
                 .bodyToMono(String.class)
-                .retryWhen(Retry.backoff(3, Duration.ofSeconds(2))
+                .retryWhen(Retry.backoff(5, Duration.ofSeconds(2))
                     .filter(throwable -> throwable instanceof WebClientResponseException &&
                         (((WebClientResponseException) throwable).getStatusCode().value() == 429 ||
-                         ((WebClientResponseException) throwable).getStatusCode().is5xxServerError())))
+                         ((WebClientResponseException) throwable).getStatusCode().is5xxServerError()))
+                    .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> retrySignal.failure()))
                 .block();
 
             return parseGeminiResponse(response, type);
         } catch (WebClientResponseException e) {
+            String errorMessage = "Lỗi kết nối AI (" + e.getStatusCode() + "): " + e.getStatusText();
             if (e.getStatusCode().value() == 429) {
-                return AIResponse.builder()
-                    .success(false)
-                    .message("Hệ thống AI đang bận (429). Vui lòng thử lại sau vài giây.")
-                    .build();
+                errorMessage = "Hệ thống AI đang bận (Quá tải). Vui lòng thử lại sau.";
             }
             return AIResponse.builder()
                 .success(false)
-                .message("Lỗi kết nối AI: " + e.getStatusText())
+                .message(errorMessage)
                 .build();
         } catch (Exception e) {
+            // Unwrap if it's a runtime exception wrapper
+            Throwable cause = e.getCause() != null ? e.getCause() : e;
             return AIResponse.builder()
                 .success(false)
-                .message("Lỗi khi gọi AI: " + e.getMessage())
+                .message("Lỗi hệ thống AI: " + cause.getMessage())
                 .build();
         }
     }
@@ -565,6 +670,19 @@ public class GeminiService {
                         }
                     }
                     builder.questions(questionsList);
+                }
+                case "pronunciation" -> {
+                    builder.isCorrect(jsonResponse.path("isCorrect").asBoolean());
+                    builder.score(jsonResponse.path("score").asInt());
+                    builder.feedback(jsonResponse.path("feedback").asText());
+                    builder.tips(jsonResponse.path("tips").asText());
+                }
+                case "pronunciation-audio" -> {
+                    builder.isCorrect(jsonResponse.path("isCorrect").asBoolean());
+                    builder.score(jsonResponse.path("score").asInt());
+                    builder.feedback(jsonResponse.path("feedback").asText());
+                    builder.tips(jsonResponse.path("tips").asText());
+                    builder.transcript(jsonResponse.path("transcript").asText());
                 }
             }
             

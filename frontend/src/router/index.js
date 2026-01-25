@@ -97,9 +97,21 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
-    path: '/word-types/:topicId?',
+    path: '/word-types',
     name: 'WordTypes',
     component: () => import('../views/WordTypePracticeView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/my-decks',
+    name: 'MyDecks',
+    component: () => import('../views/MyDecksView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/speaking-practice',
+    name: 'SpeakingPractice',
+    component: () => import('../views/SpeakingPracticeView.vue'),
     meta: { requiresAuth: true }
   }
 ]
