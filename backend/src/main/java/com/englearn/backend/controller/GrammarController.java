@@ -31,11 +31,11 @@ public class GrammarController {
     }
 
     @GetMapping("/{tenseName}")
-    public ResponseEntity<?> getLesson(@PathVariable String tenseName) {
+    public ResponseEntity<?> getLesson(@PathVariable String tenseName, @RequestParam(defaultValue = "false") boolean refresh) {
         try {
             // Decode URL if needed or handle cleaner strings (frontend should send proper tense name)
             // But let's assume raw string first
-            GrammarLesson lesson = grammarService.getLesson(tenseName);
+            GrammarLesson lesson = grammarService.getLesson(tenseName, refresh);
             return ResponseEntity.ok(lesson);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));

@@ -22,11 +22,13 @@ public class GrammarService {
     @Autowired
     private ObjectMapper objectMapper;
 
-    public GrammarLesson getLesson(String tenseName) {
-        // 1. Check DB
-        Optional<GrammarLesson> existingLesson = grammarLessonRepository.findByTenseName(tenseName);
-        if (existingLesson.isPresent()) {
-            return existingLesson.get();
+    public GrammarLesson getLesson(String tenseName, boolean refresh) {
+        // 1. Check DB if not refreshing
+        if (!refresh) {
+            Optional<GrammarLesson> existingLesson = grammarLessonRepository.findByTenseName(tenseName);
+            if (existingLesson.isPresent()) {
+                return existingLesson.get();
+            }
         }
 
         // 2. Generate AI content
@@ -36,9 +38,16 @@ public class GrammarService {
              throw new RuntimeException("Failed to generate lesson: " + response.getMessage());
         }
 
-        // 3. Save to DB
-        GrammarLesson lesson = new GrammarLesson();
-        lesson.setTenseName(tenseName);
+        // 3. Save to DB (Update if exists or create new)
+        GrammarLesson lesson;
+        Optional<GrammarLesson> existingLesson = grammarLessonRepository.findByTenseName(tenseName);
+        if (existingLesson.isPresent()) {
+            lesson = existingLesson.get();
+        } else {
+            lesson = new GrammarLesson();
+            lesson.setTenseName(tenseName);
+        }
+
         lesson.setTitle(response.getTitle());
         lesson.setDescription(response.getDescription());
         lesson.setStructure(response.getStructure());

@@ -571,7 +571,7 @@ public class GeminiService {
             2. Công thức/Cấu trúc: Các dạng Khẳng định (+), Phủ định (-), Nghi vấn (?).
             3. Cách dùng: Các trường hợp sử dụng cụ thể.
             4. Ví dụ: 5 câu ví dụ minh họa rõ ràng.
-            5. Bài tập trắc nghiệm: 5 câu hỏi để kiểm tra hiểu biết, có đáp án và giải thích.
+            5. Bài tập trắc nghiệm: 30 câu hỏi để kiểm tra hiểu biết, có đáp án và giải thích.
 
             Trả lời theo định dạng JSON:
             {

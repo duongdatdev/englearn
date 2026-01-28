@@ -276,8 +276,8 @@ export const api = {
     return response.json()
   },
 
-  async getGrammarLesson(tenseName) {
-    const response = await fetch(`${API_URL}/grammar/${encodeURIComponent(tenseName)}`)
+  async getGrammarLesson(tenseName, refresh = false) {
+    const response = await fetch(`${API_URL}/grammar/${encodeURIComponent(tenseName)}?refresh=${refresh}`)
     if (!response.ok) throw new Error('Failed to fetch grammar lesson')
     return response.json()
   }
